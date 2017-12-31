@@ -129,7 +129,7 @@
 
 <script>
 $(document).ready(() => {
-	$.getJSON('http://localhost:3000/api/currentEvents', data => {
+	$.getJSON('/api/currentEvents', data => {
 		console.log(data);
 		let events = '';
 		$.each(data, (key, value) => {
