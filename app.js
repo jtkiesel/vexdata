@@ -2,6 +2,7 @@ const express = require('express');
 const mongodb = require('mongodb');
 
 const app = express();
+const port = process.env.PORT || 8080;
 const MongoClient = mongodb.MongoClient;
 const mongodbUri = process.env.WEBSITE_DB;
 const mongodbOptions = {
@@ -15,6 +16,12 @@ let db;
 MongoClient.connect(mongodbUri, mongodbOptions).then(database => {
 	db = database.db('heroku_x9cnpcwf');
 }).catch(console.log);
+
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+	res.render('index');
+});
 
 app.get('/api/currentEvents', async (req, res) => {
 	const now = Date.now();
@@ -39,5 +46,5 @@ app.get('/api/currentEvents', async (req, res) => {
 	res.json(events);
 });
 
-app.listen(process.env.PORT || 8080);
+app.listen(port);
 console.log('Running');
