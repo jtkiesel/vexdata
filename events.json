@@ -1,0 +1,97 @@
+[
+	{
+		"_id": "RE-VRC-17-2580",
+		"name": "2017 California High Desert VEX Robotics Middle School League",
+		"start": 1507953600000,
+		"end": 1517716799999,
+		"city": "Hesperia",
+		"region": "California",
+		"country": "United States"
+	},{
+		"_id": "RE-VRC-17-2711",
+		"name": "Central Valley In The Zone League",
+		"start": 1505793600000,
+		"end": 1516161599999,
+		"city": "Modesto",
+		"region": "California",
+		"country": "United States"
+	},{
+		"_id": "RE-VRC-17-3454",
+		"name": "2017 Central California VEX League West Hills",
+		"start": 1504238400000,
+		"end": 1518321599999,
+		"city": "Tulare",
+		"region": "California",
+		"country": "United States"
+	},{
+		"_id": "RE-VRC-17-3875",
+		"name": "Elk Grove In The Zone League",
+		"start": 1508904000000,
+		"end": 1517457599999,
+		"city": "Sacramento",
+		"region": "California",
+		"country": "United States"
+	},{
+		"_id": "RE-VEXU-17-2373",
+		"name": "New Zealand Season Long VEXU Skills Challenge",
+		"start": 1498881600000,
+		"end": 1519876799999,
+		"city": "Auckland",
+		"country": "New Zealand"
+	},{
+		"_id": "RE-VRC-17-3688",
+		"name": "Fox Valley VRC League 2017-2018 (Middle School and High School)",
+		"start": 1509595200000,
+		"end": 1518148799999,
+		"city": "Menasha",
+		"region": "Wisconsin",
+		"country": "United States"
+	},{
+		"_id": "RE-VRC-17-4062",
+		"name":"Greater Tampa VEX League",
+		"start": 1510977600000,
+		"end": 1517716799999,
+		"city": "Tampa",
+		"region": "Florida",
+		"country": "United States"
+	},{
+		"_id": "RE-VRC-17-4471",
+		"name": "Mahoning Valley VRC League",
+		"start": 1512100800000,
+		"end": 1519444799999,
+		"city": "Canfield",
+		"region": "Ohio",
+		"country": "United States"
+	},{
+		"_id": "RE-VRC-17-3120",
+		"name": "Hong Kong Skills Challenge - 1",
+		"start": 1513396800000,
+		"end": 1517111999999,
+		"city": "Hong Kong",
+		"country": "Hong Kong"
+	},{
+		"_id": "RE-VRC-17-2945",
+		"name": "2017-2018 Asia Open VEX Robotics Competition - High School",
+		"start": 1514433600000,
+		"end": 1514779199999,
+		"city": "Suzhou",
+		"region": "Jiangsu",
+		"country": "China"
+	},{
+		"_id": "RE-VRC-17-2952",
+		"name": "2017-2018 Asia Open VEX Robotics Competition - Middle School",
+		"start": 1514433600000,
+		"end": 1514779199999,
+		"city": "Suzhou",
+		"region": "Jiangsu",
+		"country": "China"
+	},{
+		"_id": "RE-VEXU-17-2955",
+		"name": "2017-2018 Asia Open VEX U Robotics Competition",
+		"start": 1514433600000,
+		"end": 1514779199999,
+		"city": "Suzhou",
+		"region": "Jiangsu",
+		"country": "China"
+	}
+]

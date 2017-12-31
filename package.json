@@ -1,0 +1,15 @@
+{
+  "name": "website",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "description": "A website providing VEX competition data.",
+  "main": "app.js",
+  "author": "Jordan Kiesel",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.2",
+    "mongodb": "^3.0.1"
+  }
+}

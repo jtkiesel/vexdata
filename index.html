@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+	<head>
+		<title>The Red Alliance</title>
+		<link rel="stylesheet" href="style.css">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+		<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.red-blue.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+	</head>
+	<body>
+		<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+			<header class="mdl-layout__header">
+				<div class="mdl-layout__header-row">
+					<span class="mdl-layout-title">The Red Alliance</span>
+					<div class="mdl-layout-spacer"></div>
+					<nav class="mdl-navigation mdl-layout--large-screen-only">
+						<a class="mdl-navigation__link" href="./teams/index.html">Teams</a>
+						<a class="mdl-navigation__link" href="./events/index.html">Events</a>
+						<a class="mdl-navigation__link" href="./skills/index.html">Skills</a>
+					</nav>
+					<div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right">
+						<label class="mdl-button mdl-js-button mdl-button--icon" for="fixed-header-drawer-exp">
+							<i class="material-icons">search</i>
+						</label>
+						<div class="mdl-textfield__expandable-holder">
+							<input class="mdl-textfield__input" type="text" name="sample" id="fixed-header-drawer-exp">
+						</div>
+					</div>
+				</div>
+			</header>
+			<div class="mdl-layout__drawer mdl-layout--small-screen-only">
+				<span class="mdl-layout-title">The Red Alliance</span>
+				<nav class="mdl-navigation">
+					<a class="mdl-navigation__link" href="./teams/index.html">Teams</a>
+					<a class="mdl-navigation__link" href="./events/index.html">Events</a>
+					<a class="mdl-navigation__link" href="./skills/index.html">Skills</a>
+				</nav>
+			</div>
+			<main class="mdl-layout__content">
+				<div class="page-content">
+					<div class="mdl-grid">
+						<div class="mdl-cell mdl-card events-card mdl-shadow--2dp">
+							<div class="mdl-card__title">
+								<h2 class="mdl-card__title-text">Events</h2>
+							</div>
+							<div class="mdl-card__data">
+								<table class="mdl-data-table mdl-js-data-table full-width wrappable" id="events-table">
+									<thead>
+										<tr>
+											<th>Dates</th>
+											<th>Location</th>
+											<th class="mdl-data-table__cell--non-numeric">Name</th>
+										</tr>
+									</thead>
+									<!--<tbody>
+										<tr>
+											<td>12/30/2017</td>
+											<td>Mountain View, California, United States</td>
+											<td class="mdl-data-table__cell--non-numeric">Google Annual VEX Robotics Tournament #1</td>
+										</tr>
+										<tr>
+											<td>12/28/2017 - 12/31/2017</td>
+											<td>Suzhou, Jiangsu, China</td>
+											<td class="mdl-data-table__cell--non-numeric">2017-2018 Asia Open VEX Robotics Competition - Middle School</td>
+										</tr>
+										<tr>
+											<td>12/28/2017 - 12/31/2017</td>
+											<td>Suzhou, Jiangsu, China</td>
+											<td class="mdl-data-table__cell--non-numeric">2017-2018 Asia Open VEX Robotics Competition - High School</td>
+										</tr>
+									</tbody>-->
+								</table>
+							</div>
+							<div class="mdl-card__actions mdl-card--border">
+								<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" href="./events/index.html">View All</a>
+							</div>
+						</div>
+						<div class="mdl-cell mdl-card skills-card mdl-shadow--2dp">
+							<div class="mdl-card__title">
+								<h2 class="mdl-card__title-text">Skills</h2>
+							</div>
+							<div class="mdl-card__data">
+								<table class="mdl-data-table mdl-js-data-table full-width" id="skills-table">
+									<thead>
+										<tr>
+											<th>Rank</th>
+											<th>Team</th>
+											<th>Score</th>
+											<th>Programming</th>
+											<th>Driver</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td>1</td>
+											<td>34203X</td>
+											<td>184</td>
+											<td>82</td>
+											<td>102</td>
+										</tr>
+										<tr>
+											<td>2</td>
+											<td>7090A</td>
+											<td>184</td>
+											<td>72</td>
+											<td>112</td>
+										</tr>
+										<tr>
+											<td>3</td>
+											<td>86868R</td>
+											<td>178</td>
+											<td>74</td>
+											<td>104</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							<div class="mdl-card__actions mdl-card--border">
+								<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" href="./events/index.html">View All</a>
+							</div>
+						</div>
+					</div>
+				</div>
+			</main>
+		</div>
+	</body>
+</html>
+
+<script>
+$(document).ready(() => {
+	$.getJSON('http://localhost:3000/api/currentEvents', data => {
+		console.log(data);
+		let events = '';
+		$.each(data, (key, value) => {
+			events += '<tbody><tr>';
+			events += `<td>${value.start} - ${value.end}</td>`;
+			events += `<td>${value.city}, ${value.region}, ${value.country}</td>`;
+			events += `<td>${value.name}</td>`;
+			events += '</tr></tbody>';
+		});
+		$('#events-table').append(events);
+	});
+});
+</script>
