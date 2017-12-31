@@ -134,8 +134,8 @@ $(document).ready(() => {
 		let events = '';
 		$.each(data, (key, value) => {
 			events += '<tbody><tr>';
-			events += `<td>${value.start} - ${value.end}</td>`;
-			events += `<td>${value.city}, ${value.region}, ${value.country}</td>`;
+			events += `<td>${value.dates}</td>`;
+			events += `<td>${value.location}</td>`;
 			events += `<td>${value.name}</td>`;
 			events += '</tr></tbody>';
 		});

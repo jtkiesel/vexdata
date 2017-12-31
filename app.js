@@ -32,12 +32,9 @@ app.get('/api/currentEvents', async (req, res) => {
 			if (date.end > now && date.start < now) {
 				events.push({
 					_id: document._id,
-					name: document.name,
-					start: date.start,
-					end: date.end,
-					city: date.city,
-					region: date.region,
-					country: date.country
+					dates: `${getDate(date.start)} - ${getDate(date.end)}`,
+					location: getLocation(date.city, date.region, date.country),
+					name: document.name
 				});
 				break;
 			}
@@ -45,6 +42,22 @@ app.get('/api/currentEvents', async (req, res) => {
 	});
 	res.json(events);
 });
+
+const getDate = ms => {
+	const date = new Date(ms);
+	return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+};
+
+const getLocation = (city, region, country) => {
+	let location = [city];
+	if (region) {
+		location.push(region);
+	}
+	if (country) {
+		location.push(country);
+	}
+	return location.join(', ');
+};
 
 app.listen(port);
 console.log('Running');
