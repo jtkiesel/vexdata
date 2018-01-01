@@ -47,7 +47,7 @@ app.get('/api/currentEvents', async (req, res) => {
 app.get('/api/topSkills', async (req, res) => {
 	const season = 115;
 	const grade = 3;
-	const documents = await db.collection('maxSkills').find({'_id.season': season, 'team.grade': grade}).project({_id: 0, rank: '$team.gradeRank', team: '$team.id', score: 1, prog: 1, driver: 1, event: '$event.sku'}).toArray();
+	const documents = await db.collection('maxSkills').find({'_id.season': season, 'team.grade': grade}).limit(30).project({_id: 0, rank: '$gradeRank', teamId: '$team.id', score: 1, prog: 1, driver: 1, event: '$event.sku'}).toArray();
 	res.json(documents);
 });
 
