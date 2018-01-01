@@ -53,23 +53,6 @@
 											<th class="mdl-data-table__cell--non-numeric">Name</th>
 										</tr>
 									</thead>
-									<!--<tbody>
-										<tr>
-											<td>12/30/2017</td>
-											<td>Mountain View, California, United States</td>
-											<td class="mdl-data-table__cell--non-numeric">Google Annual VEX Robotics Tournament #1</td>
-										</tr>
-										<tr>
-											<td>12/28/2017 - 12/31/2017</td>
-											<td>Suzhou, Jiangsu, China</td>
-											<td class="mdl-data-table__cell--non-numeric">2017-2018 Asia Open VEX Robotics Competition - Middle School</td>
-										</tr>
-										<tr>
-											<td>12/28/2017 - 12/31/2017</td>
-											<td>Suzhou, Jiangsu, China</td>
-											<td class="mdl-data-table__cell--non-numeric">2017-2018 Asia Open VEX Robotics Competition - High School</td>
-										</tr>
-									</tbody>-->
 								</table>
 							</div>
 							<div class="mdl-card__actions mdl-card--border">
@@ -91,29 +74,6 @@
 											<th>Driver</th>
 										</tr>
 									</thead>
-									<tbody>
-										<tr>
-											<td>1</td>
-											<td>34203X</td>
-											<td>184</td>
-											<td>82</td>
-											<td>102</td>
-										</tr>
-										<tr>
-											<td>2</td>
-											<td>7090A</td>
-											<td>184</td>
-											<td>72</td>
-											<td>112</td>
-										</tr>
-										<tr>
-											<td>3</td>
-											<td>86868R</td>
-											<td>178</td>
-											<td>74</td>
-											<td>104</td>
-										</tr>
-									</tbody>
 								</table>
 							</div>
 							<div class="mdl-card__actions mdl-card--border">
@@ -130,16 +90,28 @@
 <script>
 $(document).ready(() => {
 	$.getJSON('/api/currentEvents', data => {
-		console.log(data);
 		let events = '';
 		$.each(data, (key, value) => {
 			events += '<tbody><tr>';
 			events += `<td>${value.dates}</td>`;
 			events += `<td>${value.location}</td>`;
-			events += `<td>${value.name}</td>`;
+			events += `<td class="mdl-data-table__cell--non-numeric">${value.name}</td>`;
 			events += '</tr></tbody>';
 		});
 		$('#events-table').append(events);
+	});
+	$.getJSON('/api/topSkills', data => {
+		let skills = '';
+		$.each(data, (key, value) => {
+			skills += '<tbody><tr>';
+			skills += `<td>${value.rank}</td>`;
+			skills += `<td>${value.team}</td>`;
+			skills += `<td>${value.score}</td>`;
+			skills += `<td>${value.prog}</td>`;
+			skills += `<td>${value.driver}</td>`;
+			skills += '</tr></tbody>';
+		});
+		$('#skills-table').append(skills);
 	});
 });
 </script>

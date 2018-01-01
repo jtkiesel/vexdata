@@ -34,18 +34,26 @@ app.get('/api/currentEvents', async (req, res) => {
 					_id: document._id,
 					dates: `${getDate(date.start)} - ${getDate(date.end)}`,
 					location: getLocation(date.city, date.region, date.country),
-					name: document.name
+					name: document.name,
+					end: date.end
 				});
 				break;
 			}
 		}
 	});
-	res.json(events);
+	res.json(events.sort((a, b) => a.end - b.end));
+});
+
+app.get('/api/topSkills', async (req, res) => {
+	const season = 115;
+	const grade = 3;
+	const documents = await db.collection('maxSkills').find({'_id.season': season, 'team.grade': grade}).project({_id: 0, rank: '$team.gradeRank', team: '$team.id', score: 1, prog: 1, driver: 1, event: '$event.sku'}).toArray();
+	res.json(documents);
 });
 
 const getDate = ms => {
 	const date = new Date(ms);
-	return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+	return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
 };
 
 const getLocation = (city, region, country) => {
