@@ -45,9 +45,9 @@ app.get('/api/currentEvents', async (req, res) => {
 });
 
 app.get('/api/topSkills', async (req, res) => {
-	const season = 115;
+	const season = 119;
 	const grade = 3;
-	const documents = await db.collection('maxSkills').find({'_id.season': season, 'team.grade': grade}).limit(30).toArray();
+	const documents = await db.collection('maxSkills').find({'_id.season': season, 'team.grade': grade}).sort({gradeRank: 1}).limit(30).toArray();
 	skills = documents.map(document => {
 		return {
 			rank: document.gradeRank,
