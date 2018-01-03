@@ -1,12 +1,12 @@
 .mdl-grid {
 	justify-content: center;
 }
-.mdl-card.events-card {
+/*.mdl-card.events-card {
   width: 750px;
 }
 .mdl-card.skills-card {
   width: 420px;
-}
+}*/
 .mdl-card__title {
   color: #000;
 }
