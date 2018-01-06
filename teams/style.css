@@ -4,12 +4,11 @@
 .mdl-grid {
 	justify-content: center;
 }
+.mdl-spinner {
+	margin: 0 auto;
+}
 .full-width {
 	width: 100%;
-}
-.wrappable, td {
-	word-wrap: normal;
-	white-space: normal;
 }
 
 body {

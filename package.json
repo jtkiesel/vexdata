@@ -1,15 +1,22 @@
 {
-  "name": "website",
+  "name": "vexdata",
   "version": "1.0.0",
   "scripts": {
     "start": "node app.js"
   },
   "description": "A website providing VEX competition data.",
   "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jtkiesel/vexdata.git"
+  },
   "author": "Jordan Kiesel",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.16.2",
-    "mongodb": "^3.0.1"
+    "express": "^4.16.x",
+    "mongodb": "^3.0.x"
+  },
+  "engines": {
+    "node": "9.3.x"
   }
 }

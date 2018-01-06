@@ -45,9 +45,11 @@ app.get('/api/currentEvents', async (req, res) => {
 });
 
 app.get('/api/topSkills', async (req, res) => {
-	const season = 119;
-	const grade = 3;
-	const documents = await db.collection('maxSkills').find({'_id.season': season, 'team.grade': grade}).sort({gradeRank: 1}).limit(30).toArray();
+	const season = parseInt(req.query.season || 119);
+	const grade = parseInt(req.query.grade || 3);
+	const skip = parseInt(req.query.skip || 0);
+	const limit = parseInt(req.query.limit || 1000);
+	const documents = await db.collection('maxSkills').find({'_id.season': season, 'team.grade': grade, gradeRank: {$gt: skip}}).sort({gradeRank: 1}).limit(limit).toArray();
 	skills = documents.map(document => {
 		return {
 			rank: document.gradeRank,
@@ -77,4 +79,4 @@ const getLocation = (city, region, country) => {
 };
 
 app.listen(port);
-console.log('Running');
+console.log(`Running on ${port}`);

@@ -1,16 +1,18 @@
 <!doctype html>
 <html>
 	<head>
-		<title>The Red Alliance - Skills</title>
+		<title>VEX Data - Skills</title>
+		<link rel="stylesheet" href="style.css">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-		<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.red-blue.min.css">
+		<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue-red.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 		<script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
 	</head>
 	<body>
 		<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
 			<header class="mdl-layout__header">
 				<div class="mdl-layout__header-row">
-					<span class="mdl-layout-title">The Red Alliance</span>
+					<a class="mdl-layout-title mdl-color-text--white" href="../">VEX Data</a>
 					<div class="mdl-layout-spacer"></div>
 					<nav class="mdl-navigation mdl-layout--large-screen-only">
 						<a class="mdl-navigation__link" href="../teams/index.html">Teams</a>
@@ -28,7 +30,7 @@
 				</div>
 			</header>
 			<div class="mdl-layout__drawer mdl-layout--small-screen-only">
-				<span class="mdl-layout-title">The Red Alliance</span>
+				<span class="mdl-layout-title">VEX Data</span>
 				<nav class="mdl-navigation">
 					<a class="mdl-navigation__link" href="../teams/index.html">Teams</a>
 					<a class="mdl-navigation__link" href="../events/index.html">Events</a>
@@ -36,8 +38,67 @@
 				</nav>
 			</div>
 			<main class="mdl-layout__content">
-				<div class="page-content">Skills Page</div>
+				<div class="page-content">
+					<div class="mdl-grid">
+						<div class="mdl-cell mdl-cell--6-col mdl-cell--top mdl-card mdl-shadow--2dp">
+							<div class="mdl-card__title">
+								<h2 class="mdl-card__title-text">Skills</h2>
+							</div>
+							<div class="mdl-card__data">
+								<table class="mdl-data-table mdl-js-data-table full-width" id="skills-table">
+									<thead>
+										<tr>
+											<th>Rank</th>
+											<th>Team</th>
+											<th>Score</th>
+											<th>Programming</th>
+											<th>Driver</th>
+										</tr>
+									</thead>
+									<tbody>
+									</tbody>
+								</table>
+							</div>
+							<div class="mdl-spinner mdl-js-spinner" id="skills-spinner"></div>
+						</div>
+					</div>
+				</div>
 			</main>
 		</div>
 	</body>
 </html>
+
+<script>
+var skip = 0;
+var processing = false;
+
+$(document).ready(function() {
+	appendSkills(500);
+});
+
+$('.mdl-layout__content').scroll(function() {
+	if (!processing) {
+		processing = true;
+		var end = $('#skills-table').offset().top + $('#skills-table').outerHeight(true);
+		var viewEnd = $(window).scrollTop() + $(window).height();
+		if (end - viewEnd < 4800) {
+			appendSkills(100);
+		} else {
+			processing = false;
+		}
+	}
+});
+
+var appendSkills = function(limit) {
+	document.getElementById('skills-spinner').classList.add('is-active');
+	$.getJSON(`/api/topSkills?skip=${skip}&limit=${limit}`, function(data) {
+		$.each(data, function(key, value) {
+			var skills = `<tr>\n<td>${value.rank}</td>\n<td>${value.team}</td>\n<td>${value.score}</td>\n<td>${value.prog}</td>\n<td>${value.driver}</td>\n</tr>`;
+			$('#skills-table > tbody').append(skills);
+		});
+		document.getElementById('skills-spinner').classList.remove('is-active');
+		skip += limit;
+		processing = false;
+	});
+};
+</script>
