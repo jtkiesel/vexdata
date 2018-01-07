@@ -23,6 +23,19 @@ app.get('/', (req, res) => {
 	res.render('index');
 });
 
+app.get('/team/:prog/:id', (req, res) => {
+	res.redirect(`/team/index.html?prog=${req.params.prog}&id=${req.params.id}`);
+});
+
+app.get('/api/team', async (req, res) => {
+	const prog = encodeProg(req.query.prog.toLowerCase());
+	const id = req.query.id.toLowerCase();
+	if (prog && validTeamId(id)) {
+		const team = await db.collection('teams').find({'_id.prog': prog, '_id.id': new RegExp(`^${id}$`, 'i')}).sort({'_id.season': -1}).limit(1).next();
+		res.json(team);
+	}
+});
+
 app.get('/api/currentEvents', async (req, res) => {
 	const now = Date.now();
 	const documents = await db.collection('events').find({dates: {$elemMatch: {end: {$gt: now}, start: {$lt: now}}}}).project({_id: 1, name: 1, dates: 1}).toArray();
@@ -61,6 +74,16 @@ app.get('/api/topSkills', async (req, res) => {
 	});
 	res.json(skills);
 });
+
+const progs = {
+	vrc: 1,
+	vexu: 4,
+	viqc: 41
+};
+
+const encodeProg = prog => progs[prog];
+
+const validTeamId = id => /^([0-9]{1,5}[A-Z]?|[A-Z]{2,6}[0-9]{0,2})$/i.test(id);
 
 const getDate = ms => {
 	const date = new Date(ms);
