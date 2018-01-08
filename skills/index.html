@@ -30,7 +30,7 @@
 				</div>
 			</header>
 			<div class="mdl-layout__drawer mdl-layout--small-screen-only">
-				<span class="mdl-layout-title">VEX Data</span>
+				<a class="mdl-layout-title mdl-color-text--grey-800" href="../">VEX Data</a>
 				<nav class="mdl-navigation">
 					<a class="mdl-navigation__link" href="../teams">Teams</a>
 					<a class="mdl-navigation__link" href="../events">Events</a>
@@ -45,7 +45,7 @@
 								<h2 class="mdl-card__title-text">Skills</h2>
 							</div>
 							<div class="mdl-card__data">
-								<table class="mdl-data-table mdl-js-data-table full-width" id="skills-table">
+								<table class="mdl-data-table mdl-js-data-table" id="skills-table">
 									<thead>
 										<tr>
 											<th>Rank</th>
@@ -91,6 +91,7 @@ $('.mdl-layout__content').scroll(function() {
 
 function appendSkills(limit) {
 	document.getElementById('skills-spinner').classList.add('is-active');
+	document.getElementById('skills-spinner').classList.remove('hidden');
 	$.getJSON(`/api/topSkills?skip=${skip}&limit=${limit}`, function(data) {
 		var skills = '';
 		$.each(data, function(key, value) {
@@ -104,6 +105,7 @@ function appendSkills(limit) {
 			skills += teamCell(prog, id, value.driver);
 			skills += '</tr>';
 		});
+		document.getElementById('skills-spinner').classList.add('hidden');
 		document.getElementById('skills-spinner').classList.remove('is-active');
 		$('#skills-table > tbody').append(skills);
 		skip += limit;

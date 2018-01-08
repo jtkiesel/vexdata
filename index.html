@@ -30,7 +30,7 @@
 				</div>
 			</header>
 			<div class="mdl-layout__drawer mdl-layout--small-screen-only">
-				<span class="mdl-layout-title">VEX Data</span>
+				<a class="mdl-layout-title mdl-color-text--grey-800" href="../">VEX Data</a>
 				<nav class="mdl-navigation">
 					<a class="mdl-navigation__link" href="./teams">Teams</a>
 					<a class="mdl-navigation__link" href="./events">Events</a>
@@ -45,7 +45,7 @@
 								<h2 class="mdl-card__title-text">Events</h2>
 							</div>
 							<div class="mdl-card__data">
-								<table class="mdl-data-table mdl-js-data-table full-width wrappable" id="events-table">
+								<table class="mdl-data-table mdl-js-data-table wrappable" id="events-table">
 									<thead>
 										<tr>
 											<th>Dates</th>
@@ -67,7 +67,7 @@
 								<h2 class="mdl-card__title-text">Skills</h2>
 							</div>
 							<div class="mdl-card__data">
-								<table class="mdl-data-table mdl-js-data-table full-width" id="skills-table">
+								<table class="mdl-data-table mdl-js-data-table" id="skills-table">
 									<thead>
 										<tr>
 											<th>Rank</th>
@@ -96,6 +96,7 @@
 <script>
 $(document).ready(function() {
 	document.getElementById('events-spinner').classList.add('is-active');
+	document.getElementById('events-spinner').classList.remove('hidden');
 	$.getJSON('/api/currentEvents', function(data) {
 		var events = '';
 		$.each(data, function(key, value) {
@@ -105,11 +106,13 @@ $(document).ready(function() {
 			events += `<td class="mdl-data-table__cell--non-numeric">${value.name}</td>`;
 			events += '</tr>';
 		});
+		document.getElementById('events-spinner').classList.add('hidden');
 		document.getElementById('events-spinner').classList.remove('is-active');
 		$('#events-table > tbody').append(events);
 	});
 
 	document.getElementById('skills-spinner').classList.add('is-active');
+	document.getElementById('skills-spinner').classList.remove('hidden');
 	$.getJSON('/api/topSkills?limit=30', function(data) {
 		var skills = '';
 		$.each(data, function(key, value) {
@@ -123,6 +126,7 @@ $(document).ready(function() {
 			skills += teamCell(prog, id, value.driver);
 			skills += '</tr>';
 		});
+		document.getElementById('skills-spinner').classList.add('hidden');
 		document.getElementById('skills-spinner').classList.remove('is-active');
 		$('#skills-table > tbody').append(skills);
 	});

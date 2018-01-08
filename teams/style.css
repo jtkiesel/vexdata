@@ -7,11 +7,28 @@
 .mdl-spinner {
 	margin: 0 auto;
 }
-.full-width {
-	width: 101%;
+.wrappable, td {
+	word-wrap: normal;
+	white-space: normal;
+}
+.hidden {
+	display: none;
 }
 
 body {
   background: #fafafa;
   position: relative;
+}
+table {
+	left: -1px;
+	width: 101%;
+}
+td {
+	overflow: hidden;
+}
+td a {
+	display: block;
+	margin: -10em;
+	padding: 10em;
+	text-decoration: none;
 }
