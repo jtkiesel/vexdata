@@ -19,10 +19,6 @@ MongoClient.connect(mongodbUri, mongodbOptions).then(database => {
 
 app.use(express.static(__dirname));
 
-app.get('/', (req, res) => {
-	res.render('index');
-});
-
 app.get('/team/:prog/:id', (req, res) => {
 	res.redirect(`/team/index.html?prog=${req.params.prog}&id=${req.params.id}`);
 });
@@ -62,16 +58,7 @@ app.get('/api/topSkills', async (req, res) => {
 	const grade = parseInt(req.query.grade || 3);
 	const skip = parseInt(req.query.skip || 0);
 	const limit = parseInt(req.query.limit || 1000);
-	const documents = await db.collection('maxSkills').find({'_id.season': season, 'team.grade': grade, gradeRank: {$gt: skip}}).sort({gradeRank: 1}).limit(limit).toArray();
-	skills = documents.map(document => {
-		return {
-			rank: document.gradeRank,
-			team: document.team.id,
-			score: document.score,
-			prog: document.prog,
-			driver: document.driver
-		};
-	});
+	const skills = await db.collection('maxSkills').find({'_id.season': season, '_id.grade': grade, '_id.rank': {$gt: skip}}).sort({'_id.rank': 1}).limit(limit).toArray();
 	res.json(skills);
 });
 

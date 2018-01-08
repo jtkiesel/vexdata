@@ -15,9 +15,9 @@
 					<a class="mdl-layout-title mdl-color-text--white" href="../">VEX Data</a>
 					<div class="mdl-layout-spacer"></div>
 					<nav class="mdl-navigation mdl-layout--large-screen-only">
-						<a class="mdl-navigation__link" href="./teams/index.html">Teams</a>
-						<a class="mdl-navigation__link" href="./events/index.html">Events</a>
-						<a class="mdl-navigation__link" href="./skills/index.html">Skills</a>
+						<a class="mdl-navigation__link" href="./teams">Teams</a>
+						<a class="mdl-navigation__link" href="./events">Events</a>
+						<a class="mdl-navigation__link" href="./skills">Skills</a>
 					</nav>
 					<div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right">
 						<label class="mdl-button mdl-js-button mdl-button--icon" for="fixed-header-drawer-exp">
@@ -32,9 +32,9 @@
 			<div class="mdl-layout__drawer mdl-layout--small-screen-only">
 				<span class="mdl-layout-title">VEX Data</span>
 				<nav class="mdl-navigation">
-					<a class="mdl-navigation__link" href="./teams/index.html">Teams</a>
-					<a class="mdl-navigation__link" href="./events/index.html">Events</a>
-					<a class="mdl-navigation__link" href="./skills/index.html">Skills</a>
+					<a class="mdl-navigation__link" href="./teams">Teams</a>
+					<a class="mdl-navigation__link" href="./events">Events</a>
+					<a class="mdl-navigation__link" href="./skills">Skills</a>
 				</nav>
 			</div>
 			<main class="mdl-layout__content">
@@ -53,10 +53,13 @@
 											<th class="mdl-data-table__cell--non-numeric">Name</th>
 										</tr>
 									</thead>
+									<tbody>
+									</tbody>
 								</table>
 							</div>
+							<div class="mdl-spinner mdl-js-spinner" id="events-spinner"></div>
 							<div class="mdl-card__actions mdl-card--border">
-								<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" href="./events/index.html">View All</a>
+								<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" href="./events">View All</a>
 							</div>
 						</div>
 						<div class="mdl-cell mdl-cell--6-col mdl-cell--top mdl-card mdl-shadow--2dp">
@@ -74,10 +77,13 @@
 											<th>Driver</th>
 										</tr>
 									</thead>
+									<tbody>
+									</tbody>
 								</table>
 							</div>
+							<div class="mdl-spinner mdl-js-spinner" id="skills-spinner"></div>
 							<div class="mdl-card__actions mdl-card--border">
-								<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" href="./skills/index.html">View All</a>
+								<a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" href="./skills">View All</a>
 							</div>
 						</div>
 					</div>
@@ -88,31 +94,53 @@
 </html>
 
 <script>
-$(document).ready(() => {
-	$.getJSON('/api/currentEvents', data => {
-		let events = '';
-		$.each(data, (key, value) => {
-			events += '<tbody><tr>';
+$(document).ready(function() {
+	document.getElementById('events-spinner').classList.add('is-active');
+	$.getJSON('/api/currentEvents', function(data) {
+		var events = '';
+		$.each(data, function(key, value) {
+			events += '<tr>';
 			events += `<td>${value.dates}</td>`;
 			events += `<td>${value.location}</td>`;
 			events += `<td class="mdl-data-table__cell--non-numeric">${value.name}</td>`;
-			events += '</tr></tbody>';
+			events += '</tr>';
 		});
-		$('#events-table').append(events);
+		document.getElementById('events-spinner').classList.remove('is-active');
+		$('#events-table > tbody').append(events);
 	});
 
-	$.getJSON('/api/topSkills?limit=30', data => {
-		let skills = '';
-		$.each(data, (key, value) => {
-			skills += '<tbody><tr>';
-			skills += `<td>${value.rank}</td>`;
-			skills += `<td>${value.team}</td>`;
-			skills += `<td>${value.score}</td>`;
-			skills += `<td>${value.prog}</td>`;
-			skills += `<td>${value.driver}</td>`;
-			skills += '</tr></tbody>';
+	document.getElementById('skills-spinner').classList.add('is-active');
+	$.getJSON('/api/topSkills?limit=30', function(data) {
+		var skills = '';
+		$.each(data, function(key, value) {
+			var prog = decodeProg(value.team.prog);
+			var id = value.team.id;
+			skills += `<tr>`;
+			skills += teamCell(prog, id, value._id.rank);
+			skills += teamCell(prog, id, id);
+			skills += teamCell(prog, id, value.score);
+			skills += teamCell(prog, id, value.prog);
+			skills += teamCell(prog, id, value.driver);
+			skills += '</tr>';
 		});
-		$('#skills-table').append(skills);
+		document.getElementById('skills-spinner').classList.remove('is-active');
+		$('#skills-table > tbody').append(skills);
 	});
 });
+
+function teamCell(prog, id, data) {
+	return `<td><a class="mdl-color-text--black" href="../team/${prog}/${id}">${data}</a></td>`;
+}
+
+var progs = {
+	1: 'VRC',
+	4: 'VEXU',
+	37: 'CREATE',
+	40: 'WORKSHOP',
+	41: 'VIQC'
+};
+
+function decodeProg(prog) {
+	return progs[prog];
+}
 </script>

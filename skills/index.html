@@ -15,9 +15,9 @@
 					<a class="mdl-layout-title mdl-color-text--white" href="../">VEX Data</a>
 					<div class="mdl-layout-spacer"></div>
 					<nav class="mdl-navigation mdl-layout--large-screen-only">
-						<a class="mdl-navigation__link" href="../teams/index.html">Teams</a>
-						<a class="mdl-navigation__link" href="../events/index.html">Events</a>
-						<a class="mdl-navigation__link" href="../skills/index.html">Skills</a>
+						<a class="mdl-navigation__link" href="../teams">Teams</a>
+						<a class="mdl-navigation__link" href="../events">Events</a>
+						<a class="mdl-navigation__link" href="../skills">Skills</a>
 					</nav>
 					<div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable mdl-textfield--floating-label mdl-textfield--align-right">
 						<label class="mdl-button mdl-js-button mdl-button--icon" for="fixed-header-drawer-exp">
@@ -32,9 +32,9 @@
 			<div class="mdl-layout__drawer mdl-layout--small-screen-only">
 				<span class="mdl-layout-title">VEX Data</span>
 				<nav class="mdl-navigation">
-					<a class="mdl-navigation__link" href="../teams/index.html">Teams</a>
-					<a class="mdl-navigation__link" href="../events/index.html">Events</a>
-					<a class="mdl-navigation__link" href="../skills/index.html">Skills</a>
+					<a class="mdl-navigation__link" href="../teams">Teams</a>
+					<a class="mdl-navigation__link" href="../events">Events</a>
+					<a class="mdl-navigation__link" href="../skills">Skills</a>
 				</nav>
 			</div>
 			<main class="mdl-layout__content">
@@ -73,7 +73,7 @@ var skip = 0;
 var processing = false;
 
 $(document).ready(function() {
-	appendSkills(500);
+	appendSkills(100);
 });
 
 $('.mdl-layout__content').scroll(function() {
@@ -89,16 +89,41 @@ $('.mdl-layout__content').scroll(function() {
 	}
 });
 
-var appendSkills = function(limit) {
+function appendSkills(limit) {
 	document.getElementById('skills-spinner').classList.add('is-active');
 	$.getJSON(`/api/topSkills?skip=${skip}&limit=${limit}`, function(data) {
+		var skills = '';
 		$.each(data, function(key, value) {
-			var skills = `<tr><td>${value.rank}</td><td>${value.team}</td><td>${value.score}</td><td>${value.prog}</td><td>${value.driver}</td></tr>`;
-			$('#skills-table > tbody').append(skills);
+			var prog = decodeProg(value.team.prog);
+			var id = value.team.id;
+			skills += `<tr>`;
+			skills += teamCell(prog, id, value._id.rank);
+			skills += teamCell(prog, id, id);
+			skills += teamCell(prog, id, value.score);
+			skills += teamCell(prog, id, value.prog);
+			skills += teamCell(prog, id, value.driver);
+			skills += '</tr>';
 		});
 		document.getElementById('skills-spinner').classList.remove('is-active');
+		$('#skills-table > tbody').append(skills);
 		skip += limit;
 		processing = false;
 	});
+}
+
+function teamCell(prog, id, data) {
+	return `<td><a class="mdl-color-text--black" href="../team/${prog}/${id}">${data}</a></td>`;
+}
+
+var progs = {
+	1: 'VRC',
+	4: 'VEXU',
+	37: 'CREATE',
+	40: 'WORKSHOP',
+	41: 'VIQC'
 };
+
+function decodeProg(prog) {
+	return progs[prog];
+}
 </script>

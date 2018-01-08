@@ -4,6 +4,9 @@
 .mdl-grid {
 	justify-content: center;
 }
+.mdl-spinner {
+	margin: 0 auto;
+}
 .full-width {
 	width: 101%;
 }
@@ -15,4 +18,13 @@
 body {
   background: #fafafa;
   position: relative;
+}
+td {
+	overflow: hidden;
+}
+td a {
+	display: block;
+	margin: -10em;
+	padding: 10em;
+	text-decoration: none;
 }
