@@ -1,3 +1,8 @@
+#team-title {
+	text-align: center;
+	font-size: 2em;
+}
+
 .mdl-layout-title {
 	text-decoration: none;
 }

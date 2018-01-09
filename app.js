@@ -20,7 +20,7 @@ MongoClient.connect(mongodbUri, mongodbOptions).then(database => {
 app.use(express.static(__dirname));
 
 app.get('/team/:prog/:id', (req, res) => {
-	res.redirect(`/team/index.html?prog=${req.params.prog}&id=${req.params.id}`);
+	res.redirect(`/team?prog=${req.params.prog}&id=${req.params.id}`);
 });
 
 app.get('/api/team', async (req, res) => {

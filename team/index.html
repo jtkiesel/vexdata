@@ -39,6 +39,7 @@
 			</div>
 			<main class="mdl-layout__content">
 				<div class="page-content">
+					<h1 class="mdl-layout-title" id="team-title"></h1>
 					<div class="mdl-grid">
 						<div class="mdl-cell mdl-cell--6-col mdl-cell--top mdl-card mdl-shadow--2dp">
 							<div class="mdl-card__title">
@@ -75,7 +76,9 @@ $(document).ready(function() {
 	var prog = url[1];
 	var id = url[3];
 	$.getJSON(`/api/team?prog=${prog}&id=${id}`, function(data) {
-		$('#title').append(` - ${data._id.prog} ${data._id.id}`);
+		var team = `${decodeProg(data._id.prog)} ${data._id.id}`;
+		$('#title').prepend(`${team} | `);
+		$('#team-title').append(team);
 		var info = tableRow('Name', data.name);
 		info += tableRow('Organization', data.org);
 		info += tableRow('Location', getLocation(data.city, data.region, data.country));
@@ -90,7 +93,7 @@ function tableRow(key, value) {
 }
 
 function getLocation(city, region, country) {
-	let location = [city];
+	var location = [city];
 	if (region) {
 		location.push(region);
 	}
@@ -100,6 +103,14 @@ function getLocation(city, region, country) {
 	return location.join(', ');
 }
 
+var progs = {
+	1: 'VRC',
+	4: 'VEXU',
+	37: 'CREATE',
+	40: 'WORKSHOP',
+	41: 'VIQC'
+};
+
 var grades = [
 	'All',
 	'Elementary',
@@ -107,6 +118,10 @@ var grades = [
 	'High School',
 	'College'
 ];
+
+function decodeProg(prog) {
+	return progs[prog];
+}
 
 function decodeGrade(grade) {
 	return grades[grade];
