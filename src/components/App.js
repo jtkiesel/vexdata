@@ -15,13 +15,14 @@ const styles = theme => ({
     display: 'flex',
     width: '100%'
   },
-  appBar: {
-    position: 'absolute'
-  },
   toolbar: theme.mixins.toolbar,
   drawerButton: {
     padding: theme.spacing.unit,
     marginRight: theme.spacing.unit * 2
+  },
+  drawerIcon: {
+    marginLeft: theme.spacing.unit,
+    marginRight: theme.spacing.unit
   },
   title: {
     textDecoration: 'none'
@@ -58,7 +59,7 @@ const styles = theme => ({
     paddingBottom: theme.spacing.unit,
     paddingLeft: theme.spacing.unit * 5,
     transition: theme.transitions.create('width'),
-    width: '100%',
+    width: 104,
     [theme.breakpoints.up('sm')]: {
       width: 120,
       '&:focus': {
@@ -73,6 +74,7 @@ const styles = theme => ({
     }
   },
   listItem: {
+    paddingLeft: theme.spacing.unit * 2,
     '&:hover': {
       backgroundColor: fade(theme.palette.common.black, 0.15)
     }
@@ -110,7 +112,7 @@ class App extends Component {
 
     return (
       <div className={classes.root}>
-        <AppBar className={classes.appBar}>
+        <AppBar color="inherit">
           <Toolbar variant="dense">
             <IconButton
               className={classes.drawerButton}
@@ -164,7 +166,7 @@ class App extends Component {
             <IconButton
               className={classes.drawerButton}
               color="inherit"
-              aria-label="Open drawer"
+              aria-label="Close drawer"
               onClick={this.handleDrawerToggle}
             >
               <MenuIcon />
@@ -190,8 +192,8 @@ class App extends Component {
               selected={this.state.selectedIndex === 1}
               onClick={event => this.handleListItemClick(event, 1)}
             >
-              <ListItemIcon>
-                <RecentActorsIcon color={this.state.selectedIndex === 1 ? 'primary' : 'inherit'}/>
+              <ListItemIcon className={classes.drawerIcon}>
+                <RecentActorsIcon color={this.state.selectedIndex === 1 ? 'primary' : 'inherit'} />
               </ListItemIcon>
               <ListItemText primary="Teams" />
             </ListItem>
@@ -201,8 +203,8 @@ class App extends Component {
               selected={this.state.selectedIndex === 2}
               onClick={event => this.handleListItemClick(event, 2)}
             >
-              <ListItemIcon>
-                <EventIcon />
+              <ListItemIcon className={classes.drawerIcon}>
+                <EventIcon color={this.state.selectedIndex === 1 ? 'primary' : 'inherit'} />
               </ListItemIcon>
               <ListItemText primary="Events" />
             </ListItem>
@@ -212,15 +214,14 @@ class App extends Component {
               selected={this.state.selectedIndex === 3}
               onClick={event => this.handleListItemClick(event, 3)}
             >
-              <ListItemIcon>
-                <FormatListNumberedIcon />
+              <ListItemIcon className={classes.drawerIcon}>
+                <FormatListNumberedIcon color={this.state.selectedIndex === 1 ? 'primary' : 'inherit'} />
               </ListItemIcon>
               <ListItemText primary="Skills" />
             </ListItem>
           </List>
         </Drawer>
         <main className={classes.content}>
-          <div className={classes.toolbar} />
           {this.props.children}
         </main>
       </div>
