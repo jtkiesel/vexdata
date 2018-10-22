@@ -18,7 +18,10 @@ const styles = theme => ({
   toolbar: theme.mixins.toolbar,
   drawerButton: {
     padding: theme.spacing.unit,
-    marginRight: theme.spacing.unit * 2
+    marginRight: theme.spacing.unit * 2,
+    '&:hover': {
+      backgroundColor: 'inherit'
+    }
   },
   drawerIcon: {
     marginLeft: theme.spacing.unit,
