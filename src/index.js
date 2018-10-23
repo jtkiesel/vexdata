@@ -9,7 +9,8 @@ import Home from './components/Home';
 import Teams from './components/Teams';
 import Events from './components/Events';
 import Skills from './components/Skills';
-import registerServiceWorker from './registerServiceWorker';
+//import registerServiceWorker from './registerServiceWorker';
+import { unregister } from './registerServiceWorker';
 
 const theme = createMuiTheme({
   palette: {
@@ -41,4 +42,4 @@ const Routes = (
 );
 
 ReactDOM.render(Routes, document.getElementById('root'));
-registerServiceWorker();
+unregister();  //registerServiceWorker();

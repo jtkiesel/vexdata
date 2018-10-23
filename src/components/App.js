@@ -207,7 +207,7 @@ class App extends Component {
               onClick={event => this.handleListItemClick(event, 2)}
             >
               <ListItemIcon className={classes.drawerIcon}>
-                <EventIcon color={this.state.selectedIndex === 1 ? 'primary' : 'inherit'} />
+                <EventIcon color={this.state.selectedIndex === 2 ? 'primary' : 'inherit'} />
               </ListItemIcon>
               <ListItemText primary="Events" />
             </ListItem>
@@ -218,7 +218,7 @@ class App extends Component {
               onClick={event => this.handleListItemClick(event, 3)}
             >
               <ListItemIcon className={classes.drawerIcon}>
-                <FormatListNumberedIcon color={this.state.selectedIndex === 1 ? 'primary' : 'inherit'} />
+                <FormatListNumberedIcon color={this.state.selectedIndex === 3 ? 'primary' : 'inherit'} />
               </ListItemIcon>
               <ListItemText primary="Skills" />
             </ListItem>
