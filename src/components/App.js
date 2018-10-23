@@ -91,7 +91,7 @@ const styles = theme => ({
 
 class App extends Component {
   state = {
-    mobileOpen: false,
+    drawerOpen: false,
     selectedIndex: 0
   };
 
@@ -116,16 +116,19 @@ class App extends Component {
   }
 
   handleDrawerToggle = () => {
-    this.setState(state => ({ mobileOpen: !state.mobileOpen }));
+    this.setState(state => ({ drawerOpen: !state.drawerOpen }));
   };
 
   handleLogoClick = () => {
-    this.setState(state => ({ selectedIndex: 0 }));
+    this.setState(() => ({
+      drawerOpen: false,
+      selectedIndex: 0
+    }));
   };
 
-  handleListItemClick = (event, index) => {
+  handleListItemClick = (index) => {
     this.setState(state => ({
-      mobileOpen: !state.mobileOpen,
+      drawerOpen: !state.drawerOpen,
       selectedIndex: index
     }));
   };
@@ -176,7 +179,7 @@ class App extends Component {
         <Drawer
           variant="temporary"
           anchor={theme.direction === 'rtl' ? 'right' : 'left'}
-          open={this.state.mobileOpen}
+          open={this.state.drawerOpen}
           onClose={this.handleDrawerToggle}
           classes={{
             paper: classes.drawerPaper
@@ -213,7 +216,7 @@ class App extends Component {
               className={classes.listItem}
               component={Link} to="/teams"
               selected={this.state.selectedIndex === 1}
-              onClick={event => this.handleListItemClick(event, 1)}
+              onClick={() => this.handleListItemClick(1)}
             >
               <ListItemIcon className={classes.drawerIcon}>
                 <RecentActorsIcon color={this.state.selectedIndex === 1 ? 'primary' : 'inherit'} />
@@ -224,7 +227,7 @@ class App extends Component {
               className={classes.listItem}
               component={Link} to="/events"
               selected={this.state.selectedIndex === 2}
-              onClick={event => this.handleListItemClick(event, 2)}
+              onClick={() => this.handleListItemClick(2)}
             >
               <ListItemIcon className={classes.drawerIcon}>
                 <EventIcon color={this.state.selectedIndex === 2 ? 'primary' : 'inherit'} />
@@ -235,7 +238,7 @@ class App extends Component {
               className={classes.listItem}
               component={Link} to="/skills"
               selected={this.state.selectedIndex === 3}
-              onClick={event => this.handleListItemClick(event, 3)}
+              onClick={() => this.handleListItemClick(3)}
             >
               <ListItemIcon className={classes.drawerIcon}>
                 <FormatListNumberedIcon color={this.state.selectedIndex === 3 ? 'primary' : 'inherit'} />
