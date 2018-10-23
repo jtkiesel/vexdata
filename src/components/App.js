@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import { Drawer, AppBar, Toolbar, List, ListItem, ListItemIcon, ListItemText, Typography, IconButton, Input, Divider } from '@material-ui/core';
 import { fade } from '@material-ui/core/styles/colorManipulator';
 import { withStyles } from '@material-ui/core/styles';
@@ -94,6 +94,26 @@ class App extends Component {
     mobileOpen: false,
     selectedIndex: 0
   };
+
+  constructor(props) {
+    super(props);
+
+    let index;
+    switch (props.location.pathname) {
+      case '/teams':
+        index = 1;
+        break;
+      case '/events':
+        index = 2;
+        break;
+      case '/skills':
+        index = 3;
+        break;
+      default:
+        index = 0;
+    }
+    this.state = { selectedIndex: index };
+  }
 
   handleDrawerToggle = () => {
     this.setState(state => ({ mobileOpen: !state.mobileOpen }));
@@ -234,7 +254,10 @@ class App extends Component {
 
 App.propTypes = {
   classes: PropTypes.object.isRequired,
-  theme: PropTypes.object.isRequired
+  theme: PropTypes.object.isRequired,
+  match: PropTypes.object.isRequired,
+  location: PropTypes.object.isRequired,
+  history: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(App);
+export default withStyles(styles)(withRouter(App));
