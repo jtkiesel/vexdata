@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
+import TextField, { Input } from '@material/react-text-field';
 import TopAppBar, { TopAppBarFixedAdjust } from '@material/react-top-app-bar';
 import Drawer, { DrawerContent } from '@material/react-drawer';
 import MaterialIcon from '@material/react-material-icon';
@@ -9,13 +10,15 @@ import './App.scss';
 
 type AppState = {
   open: boolean,
-  selectedIndex: number
+  selectedIndex: number,
+  search: string
 };
 
 class App extends Component<RouteComponentProps, AppState> {
   state: AppState = {
     open: false,
-    selectedIndex: this.getSelectedIndex()
+    selectedIndex: this.getSelectedIndex(),
+    search: ''
   };
 
   getSelectedIndex() {
@@ -34,6 +37,10 @@ class App extends Component<RouteComponentProps, AppState> {
   onListItemClick(event: React.MouseEvent<HTMLElement, MouseEvent>, link: string) {
     this.props.history.push(link);
     event.preventDefault();
+  }
+
+  onSearchChange(search: string) {
+    this.setState({search});
   }
 
   render() {

@@ -5,17 +5,10 @@ import { Grid, Row, Cell } from '@material/react-layout-grid';
 import List, { ListItem, ListItemText, ListDivider, ListItemMeta } from '@material/react-list';
 import Tab from '@material/react-tab';
 import TabBar from '@material/react-tab-bar';
-import { Headline4, Headline1 } from '@material/react-typography';
+import { Headline4, Headline5, Headline6 } from '@material/react-typography';
 
-import '@material/react-card/index.scss';
-import '@material/react-layout-grid/index.scss';
-import '@material/react-list/index.scss';
-import '@material/react-tab/index.scss';
-import '@material/react-tab-bar/index.scss';
-import '@material/react-tab-indicator/index.scss';
-import '@material/react-tab-scroller/index.scss';
-import '@material/react-typography/index.scss';
-
+import TeamEvent from './TeamEvent';
+import vex from '../vex';
 import './Team.scss';
 
 type TeamParams = {
@@ -25,97 +18,77 @@ type TeamParams = {
 
 type TeamState = {
   seasonIndex: number,
-  seasons: TeamInfo[],
+  teams: VexTeam[],
+  events: VexEvent[],
   stats: TeamStats
 };
 
-type TeamInfo = {
+type VexTeam = {
   _id: {
-    prog: number,
     id: string,
     season: number
   },
-  name: string,
-  org: string,
+  program: number,
+  name: string | undefined,
+  org: string | undefined,
+  lat: number,
+  lng: number,
   city: string,
-  region: string,
-  country: string,
-  grade: number,
-  robot: string
-}
+  region: string | undefined,
+  country: string | undefined,
+  grade: number | undefined,
+  robot: string | undefined
+};
+
+type VexDate = {
+  start: Date,
+  end: Date,
+  venue: string | undefined,
+  address: string | undefined,
+  city: string | undefined,
+  region: string | undefined,
+  postcode: string | undefined,
+  country: string | undefined
+};
+
+type VexEvent = {
+  _id: string,
+  season: number,
+  program: number,
+  name: string,
+  start: Date,
+  end: Date,
+  lat: number,
+  lng: number,
+  email: string | undefined,
+  phone: string | undefined,
+  webcast: string | undefined,
+  type: string | undefined,
+  capacity: number | undefined,
+  spots: number | undefined,
+  price: number | undefined,
+  dates: VexDate[] | undefined,
+  grade: number | undefined,
+  skills: boolean | undefined,
+  tsa: boolean | undefined,
+  regPerOrg: number | undefined,
+  opens: Date | undefined,
+  deadline: Date | undefined,
+  teams: string[] | undefined,
+  divisions: {[key: number]: string} | undefined
+};
 
 type TeamStats = {
   opr: number,
   dpr: number,
   ccwm: number
-}
-
-const programs: {[key: number]: string} = {
-  1: 'VRC',
-  4: 'VEXU',
-  41: 'VIQC'
 };
-
-const seasons: {[key: number]: string} = {
-  '-4': 'Bridge Battle',
-	'-3': 'Elevation',
-	'-2': 'Elevation',
-	'-1': 'Rings-n-Things',
-	'1': 'Clean Sweep',
-	'4': 'Clean Sweep',
-	'7': 'Round Up',
-	'10': 'Round Up',
-	'73': 'Gateway',
-	'76': 'Gateway',
-	'85': 'Sack Attack',
-	'88': 'Sack Attack',
-	'92': 'Toss Up',
-	'93': 'Toss Up',
-	'96': 'Add It Up',
-	'101': 'Highrise',
-	'102': 'Skyrise',
-	'103': 'Skyrise',
-	'109': 'Bank Shot',
-	'110': 'Nothing But Net',
-	'111': 'Nothing But Net',
-	'114': 'Crossover',
-	'115': 'Starstruck',
-	'116': 'Starstruck',
-	'119': 'In the Zone',
-	'120': 'In the Zone',
-	'121': 'Ringmaster',
-	'124': 'Next Level',
-	'125': 'Turning Point',
-	'126': 'Turning Point'
-};
-
-const grades = [
-  'All',
-  'Elementary',
-  'Middle School',
-  'High School',
-  'College'
-];
-
-const decodeProgram = (id: number) => programs[id];
-const decodeSeason = (id: number) => seasons[id];
-const decodeGrade = (id: number) => grades[id];
-
-const callApi = (input: RequestInfo, init?: RequestInit | undefined) => {
-  return fetch(input, init).then(response => {
-    if (!response.ok) {
-      throw Error(response.statusText);
-    }
-    return response;
-  }).then(response => {
-    return response.json();
-  });
-}
 
 class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
   state: TeamState = {
     seasonIndex: 0,
-    seasons: [],
+    teams: [],
+    events: [],
     stats: {
       opr: 0,
       dpr: 0,
@@ -124,18 +97,26 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
   };
 
   getTeam() {
-    return this.state.seasons[this.state.seasonIndex];
+    return this.state.teams[this.state.seasonIndex];
   }
 
   getTeamTitle() {
-    const team = this.state.seasons[0];
-    return team ? `${decodeProgram(team._id.prog)} ${team._id.id}` : '';
+    const team = this.state.teams[0];
+    return team ? `${vex.decodeProgram(team.program)} ${team._id.id}` : '';
+  }
+
+  updateEvents(seasonIndex: number) {
+    const {id, season} = this.state.teams[seasonIndex]._id;
+    vex.callApi(`/api/events?teams=${id}&season=${season}&sort=-end`).then((events: VexEvent[]) => {
+      this.setState({events});
+    }).catch(console.error);
   }
 
   handleSeasonIndexUpdate(seasonIndex: number) {
+    this.updateEvents(seasonIndex);
     this.setState({seasonIndex});
     const search = new URLSearchParams(this.props.location.search);
-    search.set('season', decodeSeason(this.state.seasons[seasonIndex]._id.season).toLowerCase());
+    search.set('season', vex.decodeSeason(this.state.teams[seasonIndex]._id.season).toLowerCase());
     this.props.history.replace({search: search.toString()});
   }
 
@@ -151,12 +132,17 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
 
   getLocation() {
     const team = this.getTeam();
-    return team ? [team.city, team.region, team.country].filter(value => value && value.length).join(', ') : '';
+    return team ? [team.city, team.region, team.country].filter(value => value && value.length).map((value, index, array) => {
+        if (index < array.length - 1) {
+          value += ',';
+        }
+      return (<Fragment key={index}><span>{value}</span> </Fragment>);
+    }) : "";
   }
 
   getGrade() {
     const team = this.getTeam();
-    return (team && team.grade) ? decodeGrade(team.grade) : '';
+    return (team && team.grade) ? vex.decodeGrade(team.grade) : '';
   }
 
   getRobot() {
@@ -166,17 +152,18 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
 
   componentDidMount() {
     const {program, id} = this.props.match.params;
-    callApi(`/api/teams?id=${id}&program=${program}&sort=-season`).then((seasons: TeamInfo[]) => {
+    vex.callApi(`/api/teams?id=${id}&program=${program}&sort=-season`).then((teams: VexTeam[]) => {
       let season = new URLSearchParams(this.props.location.search).get('season');
       let seasonIndex = 0;
       if (season != null) {
         season = season.toLowerCase();
-        const index = seasons.findIndex(team => decodeSeason(team._id.season).toLowerCase() === season);
+        const index = teams.findIndex(team => vex.decodeSeason(team._id.season).toLowerCase() === season);
         if (index >= 0) {
           seasonIndex = index;
         }
       }
-      this.setState({seasonIndex, seasons});
+      this.setState({seasonIndex, teams});
+      this.updateEvents(seasonIndex);
       document.title = `${this.getTeamTitle()} - VEX Data`;
     }).catch(console.error);
     /*callApi(`/api/program/${program}/team/${id}/stats`).then(team => {
@@ -190,70 +177,80 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
   render() {
     return (
       <Fragment>
-        <Headline4 className="team-title">{this.getTeamTitle()}</Headline4>
+        <Headline4 className="title">{this.getTeamTitle()}</Headline4>
         <TabBar
           activeIndex={this.state.seasonIndex}
           handleActiveIndexUpdate={activeIndex => this.handleSeasonIndexUpdate(activeIndex)}
         >
-          {this.state.seasons.map((team, index) => (
+          {this.state.teams.map((team, index) => (
             <Tab
               active={this.state.seasonIndex === index}
               key={team._id.season}
             >
-              <span className="mdc-tab__text-label">{decodeSeason(team._id.season)}</span>
+              <span className="mdc-tab__text-label">{vex.decodeSeason(team._id.season)}</span>
             </Tab>
           ))}
         </TabBar>
         <Grid>
           <Row>
-            <Cell columns={6}>
+            <Cell desktopColumns={6} tabletColumns={8}>
               <Card>
-                <Headline1 className="card-title">Info</Headline1>
+                <Headline5 className="card-title">Info</Headline5>
                 <List nonInteractive>
-                  <ListDivider />
                   <ListItem>
-                    <ListItemText primaryText="Name" />
+                    <ListItemText className="list-item-text" primaryText="Name" />
                     <ListItemMeta meta={this.getName()} />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primaryText="Organization" />
+                    <ListItemText className="list-item-text" primaryText="Organization" />
                     <ListItemMeta meta={this.getOrganization()} />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primaryText="Location" />
-                    <ListItemMeta meta={this.getLocation()} />
+                    <ListItemText className="list-item-text" primaryText="Location" />
+                    <ListItemMeta className="location" meta="">{this.getLocation()}</ListItemMeta>
                   </ListItem>
                   <ListItem>
-                    <ListItemText primaryText="Grade" />
+                    <ListItemText className="list-item-text" primaryText="Grade" />
                     <ListItemMeta meta={this.getGrade()} />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primaryText="Robot" />
+                    <ListItemText className="list-item-text" primaryText="Robot" />
                     <ListItemMeta meta={this.getRobot()} />
                   </ListItem>
                 </List>
               </Card>
             </Cell>
-            <Cell columns={6}>
+            <Cell desktopColumns={6} tabletColumns={8}>
               <Card>
-                <Headline1 className="card-title">Stats</Headline1>
+                <Headline5 className="card-title">Stats</Headline5>
                 <List nonInteractive>
-                  <ListDivider />
                   <ListItem>
-                    <ListItemText primaryText="OPR" />
+                    <ListItemText className="list-item-text" primaryText="OPR" />
                     <ListItemMeta meta={this.state.stats.opr.toFixed(2)} />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primaryText="DPR" />
+                    <ListItemText className="list-item-text" primaryText="DPR" />
                     <ListItemMeta meta={this.state.stats.dpr.toFixed(2)} />
                   </ListItem>
                   <ListItem>
-                    <ListItemText primaryText="CCWM" />
+                    <ListItemText className="list-item-text" primaryText="CCWM" />
                     <ListItemMeta meta={this.state.stats.ccwm.toFixed(2)} />
                   </ListItem>
                 </List>
               </Card>
             </Cell>
+            {this.state.events.map(event => (
+              <Cell desktopColumns={6} tabletColumns={8} key={event._id}>
+                <Card>
+                  <TeamEvent
+                    team={this.getTeam()._id.id}
+                    sku={event._id}
+                    name={event.name}
+                    divisions={event.divisions}
+                  />
+                </Card>
+              </Cell>
+            ))}
           </Row>
         </Grid>
       </Fragment>

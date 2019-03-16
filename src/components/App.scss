@@ -1,7 +1,14 @@
+//$mdc-theme-primary: #2196f3;
+
 @import "@material/react-drawer/index.scss";
 @import "@material/react-list/index.scss";
 @import "@material/react-material-icon/index.scss";
+@import "@material/react-text-field/index.scss";
 @import "@material/react-top-app-bar/index.scss";
+
+@import "@material/theme/mdc-theme";
+
+@import "@material/textfield/mixins";
 
 .drawer {
   position: fixed;
@@ -11,3 +18,39 @@
 .drawer-app-bar {
   width: inherit;
 }
+
+.search {
+  position: absolute;
+  right: 0;
+  width: 50%;
+  border: 0;
+  z-index: 4;
+
+  @include mdc-text-field-ink-color(white);
+  @include mdc-text-field-label-color(white);
+  @include mdc-text-field-caret-color(white);
+  @include mdc-text-field-fullwidth-bottom-line-color(white);
+}
+
+.search-icon {
+  color: white!important;
+}
+
+/*.search {
+  width: 50%;
+
+  &::before {
+    top: unset;
+    left: unset;
+    width: unset;
+    height: unset;
+  }
+}
+
+.mdc-top-app-bar__action-item::after {
+  border-radius: unset;
+}
+
+.mdc-text-field::before {
+  border-radius: unset;
+}*/

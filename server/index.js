@@ -1,3 +1,4 @@
+const compression = require('compression');
 const express = require('express');
 const { MongoClient } = require('mongodb');
 const path = require('path');
@@ -7,19 +8,24 @@ const router = express.Router();
 const port = process.env.PORT || 5000;
 const dbUri = process.env.WEBSITE_DB || '';
 const mongoOptions = {
+  retryWrites: true,
   reconnectTries: Number.MAX_VALUE,
-  keepAlive: true,
   useNewUrlParser: true
 };
 
 let db, teams, events, skills, matches, rankings, maxSkills;
 
-//const clamp = (val, min, max) => Math.min(Math.max(val, min), max);
-
 const badQuery = (res, msg) => res.status(400).send(`Query Error: ${msg}`);
+const notFound = (res, msg) => res.status(404).send(`Not Found: ${msg}`);
+const serverError = (res, err) => {
+  console.error(err);
+  res.status(500).send(`Server Error: ${err}`);
+};
 
 const badId = res => badQuery(res, 'id requires a TeamId');
 const badProgram = res => badQuery(res, 'program requires a ProgramId');
+const badSeason = res => badQuery(res, 'season requires a SeasonId');
+const badSku = res => badQuery(res, 'sku requires an EventSku');
 const badSkip = res => badQuery(res, 'skip requires a positive integer');
 const badLimit = res => badQuery(res, `limit requires an integer between 1 and ${maxLimit}`);
 
@@ -32,6 +38,13 @@ const validateProgram = program => {
   return isValidProgramId(programNum) ? programNum : encodeProgram(program.toLowerCase());
 };
 
+const validateSeason = season => {
+  const seasonNum = Number(season);
+  return isValidSeasonId(seasonNum) ? seasonNum : encodeSeason(season.toLowerCase());
+};
+
+const validateSku = sku => isValidEventSku(sku) ? sku.toUpperCase() : undefined;
+
 const validateSkip = skip => {
   const skipNum = Number(skip);
   return (Number.isInteger(skipNum) && skipNum >= 0) ? skipNum : undefined;
@@ -43,15 +56,28 @@ const validateLimit = limit => {
   return (Number.isInteger(limitNum) && limitNum >= 1 && limitNum <= maxLimit) ? limitNum : undefined;
 };
 
+app.use(compression());
 app.use('/api', router);
 
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../build')));
-  app.get('*', (req, res) => res.sendFile(path.join(__dirname, '../build/index.html')));
+  app.get('*', (_, res) => res.sendFile(path.join(__dirname, '../build/index.html')));
 }
 
 router.get('/teams', (req, res) => {
   const query = {};
+  const projection = teamHideSensitive;
+  const sort = {};
+  let skip = 0;
+  let limit = 1000;
+
+  if (req.query.program !== undefined) {
+    const program = validateProgram(req.query.program);
+    if (program === undefined) {
+      return badProgram(res);
+    }
+    query.program = program;
+  }
   if (req.query.id !== undefined) {
     const id = validateId(req.query.id);
     if (id === undefined) {
@@ -59,14 +85,18 @@ router.get('/teams', (req, res) => {
     }
     query['_id.id'] = id;
   }
-  if (req.query.program !== undefined) {
-    const program = validateProgram(req.query.program);
-    if (program === undefined) {
-      return badProgram(res);
+  if (req.query.season !== undefined) {
+    const season = validateSeason(req.query.season);
+    if (season === undefined) {
+      return badSeason(res);
     }
-    query['_id.prog'] = program;
+    query['_id.season'] = season;
   }
-  const sort = {};
+  if (req.query.search !== undefined) {
+    query.$text = req.query.search;
+    projection.score = {$meta: 'textScore'};
+    sort.score = {$meta: 'textScore'};
+  }
   if (req.query.sort !== undefined) {
     const fields = req.query.sort.split(',');
     for (let field of fields) {
@@ -77,52 +107,224 @@ router.get('/teams', (req, res) => {
       if (!['season'].includes(field)) {
         return badQuery(res, `invalid sort field "${field}"`);
       }
-      if (field === 'season') {
-        field = '_id.season';
+      if (['id', 'season'].includes(field)) {
+        field = `_id.${field}`;
       }
       sort[field] = (order === '-') ? -1 : 1;
     }
   }
-  let skip = 0;
   if (req.query.skip !== undefined) {
     skip = validateSkip(req.query.skip);
     if (skip === undefined) {
       return badSkip(res);
     }
   }
-  let limit = 1000;
   if (req.query.limit !== undefined) {
     limit = validateLimit(req.query.limit);
     if (limit === undefined) {
       return badLimit(res);
     }
   }
-  teams.find(query).project(teamHideSensitive).sort(sort).skip(skip).limit(limit).toArray()
+  teams.find(query).project(projection).sort(sort).skip(skip).limit(limit).toArray()
     .then(teams => res.json(teams))
-    .catch(err => {
-      console.error(err);
-      res.sendStatus(500);
-    });
+    .catch(err => serverError(res, err));
 });
-/*
-app.get('/api/teams/:program/:id', (req, res) => {
-  const program = encodeProgram(req.params.program.toLowerCase());
-  const id = req.params.id;
+
+router.get('/teams/:program/:id/:season', (req, res) => {
+  const program = validateProgram(req.params.program);
   if (program === undefined) {
     return badProgram(res);
   }
-  if (!isValidTeamId(id)) {
+  const id = validateId(req.params.id);
+  if (id === undefined) {
     return badId(res);
   }
-  teams.find({'_id.prog': program, '_id.id': new RegExp(`^${id}$`, 'i')}).project(teamHideSensitive).sort({'_id.season': -1}).limit(1).toArray()
+  const season = validateSeason(req.params.season);
+  if (season === undefined) {
+    return badSeason(res);
+  }
+  teams.find({_id: {id, season}}).project(teamHideSensitive).limit(1).toArray()
     .then(teams => {
+      if (teams.length === 0) {
+        return notFound(res);
+      }
       res.json(teams[0]);
-    }).catch(err => {
-      console.error(err);
-      res.sendStatus(500);
-    });
+    }).catch(err => serverError(res, err));
 });
 
+router.get('/events', (req, res) => {
+  const query = {};
+  const projection = {};
+  const sort = {};
+  let skip = 0;
+  let limit = 1000;
+
+  if (req.query.sku !== undefined) {
+    const sku = validateSku(req.query.sku);
+    if (sku === undefined) {
+      return badSku(res);
+    }
+    query._id = sku;
+  }
+  if (req.query.program !== undefined) {
+    const program = validateProgram(req.query.program);
+    if (program === undefined) {
+      return badProgram(res);
+    }
+    query.program = program;
+  }
+  if (req.query.season !== undefined) {
+    const season = validateSeason(req.query.season);
+    if (season === undefined) {
+      return badSeason(res);
+    }
+    query.season = season;
+  }
+  if (req.query.teams !== undefined) {
+    const teams = [];
+    for (const team of req.query.teams.split(',')) {
+      const id = validateId(team);
+      if (id === undefined) {
+        return badId(res);
+      }
+      teams.push(id);
+    }
+    query.teams = {$all: teams};
+  }
+  if (req.query.search !== undefined) {
+    query.$text = req.query.search;
+    projection.score = {$meta: 'textScore'};
+    sort.score = {$meta: 'textScore'};
+  }
+  if (req.query.sort !== undefined) {
+    const fields = req.query.sort.split(',');
+    for (let field of fields) {
+      const order = field.charAt(0);
+      if (order === '-') {
+        field = field.slice(1);
+      }
+      if (!['sku', 'start', 'end'].includes(field)) {
+        return badQuery(res, `invalid sort field "${field}"`);
+      }
+      if (field === 'sku') {
+        field = '_id';
+      }
+      sort[field] = (order === '-') ? -1 : 1;
+    }
+  }
+  if (req.query.skip !== undefined) {
+    skip = validateSkip(req.query.skip);
+    if (skip === undefined) {
+      return badSkip(res);
+    }
+  }
+  if (req.query.limit !== undefined) {
+    limit = validateLimit(req.query.limit);
+    if (limit === undefined) {
+      return badLimit(res);
+    }
+  }
+  events.find(query).project(projection).sort(sort).skip(skip).limit(limit).toArray()
+    .then(teams => res.json(teams))
+    .catch(err => serverError(res, err));
+});
+
+router.get('/events/:sku', (req, res) => {
+  const sku = validateSku(req.params.sku);
+  if (sku === undefined) {
+    return badSku(res);
+  }
+  events.find({_id: sku}).limit(1).toArray()
+    .then(events => {
+      if (events.length === 0) {
+        return notFound(res, 'SKU not found');
+      }
+      res.json(events[0]);
+    }).catch(err => serverError(res, err));
+});
+
+router.get('/matches', (req, res) => {
+  const query = {};
+  const projection = {};
+  const sort = {};
+  let skip = 0;
+  let limit = 1000;
+
+  if (req.query.event !== undefined) {
+    const event = validateSku(req.query.event);
+    if (event === undefined) {
+      return badSku(res);
+    }
+    query['_id.event'] = event;
+  }
+  if (req.query.program !== undefined) {
+    const program = validateProgram(req.query.program);
+    if (program === undefined) {
+      return badProgram(res);
+    }
+    query.program = program;
+  }
+  if (req.query.season !== undefined) {
+    const season = validateSeason(req.query.season);
+    if (season === undefined) {
+      return badSeason(res);
+    }
+    query.season = season;
+  }
+  if (req.query.teams !== undefined) {
+    const teams = [];
+    for (const team of req.query.teams.split(',')) {
+      const id = validateId(team);
+      if (id === undefined) {
+        return badId(res);
+      }
+      teams.push(id);
+    }
+    query.$or = [
+      {red: {$in: teams}},
+      {blue: {$in: teams}}
+    ];
+  }
+  if (req.query.search !== undefined) {
+    query.$text = req.query.search;
+    projection.score = {$meta: 'textScore'};
+    sort.score = {$meta: 'textScore'};
+  }
+  if (req.query.sort !== undefined) {
+    const fields = req.query.sort.split(',');
+    for (let field of fields) {
+      const order = field.charAt(0);
+      if (order === '-') {
+        field = field.slice(1);
+      }
+      if (!['sku', 'start', 'end'].includes(field)) {
+        return badQuery(res, `invalid sort field "${field}"`);
+      }
+      if (field === 'sku') {
+        field = '_id';
+      }
+      sort[field] = (order === '-') ? -1 : 1;
+    }
+  }
+  if (req.query.skip !== undefined) {
+    skip = validateSkip(req.query.skip);
+    if (skip === undefined) {
+      return badSkip(res);
+    }
+  }
+  if (req.query.limit !== undefined) {
+    limit = validateLimit(req.query.limit);
+    if (limit === undefined) {
+      return badLimit(res);
+    }
+  }
+  matches.find(query).project(projection).sort(sort).skip(skip).limit(limit).toArray()
+    .then(teams => res.json(teams))
+    .catch(err => serverError(res, err));
+});
+
+router.get('*', (_, res) => notFound(res, 'no such endpoint'));
+/*
 app.get('/api/program/:program/team/:id/stats', (req, res) => {
   const {program, id} = req.params;
   if (program != null && id != null) {
@@ -168,7 +370,7 @@ app.get('/api/program/:program/season/:season/grade/:grade/skills', (req, res) =
 });
 */
 MongoClient.connect(dbUri, mongoOptions).then(mongoClient => {
-  db = mongoClient.db('heroku_x9cnpcwf');
+  db = mongoClient.db('vexdata');
 
   teams = db.collection('teams');
   events = db.collection('events');
@@ -186,10 +388,6 @@ const programs = {
   viqc: 41
 };
 
-const programIds = Object.values(programs);
-
-const encodeProgram = program => programs[program];
-
 const seasons = {
   'bridge battle': -4,
   'elevation': -3,
@@ -205,8 +403,6 @@ const seasons = {
   'turning point': 125
 };
 
-const encodeSeason = season => seasons[season];
-
 const grades = [
   'all',
   'elementary',
@@ -215,8 +411,14 @@ const grades = [
   'college'
 ];
 
+const programIds = Object.values(programs);
+const seasonIds = Object.values(seasons);
+
+const encodeProgram = program => programs[program];
+const encodeSeason = season => seasons[season];
 const encodeGrade = grade => grades.indexOf(grade);
 
 const isValidTeamId = id => /^([0-9]{1,5}[A-Z]?|[A-Z]{2,5}[0-9]{0,2})$/i.test(id);
-
 const isValidProgramId = program => programIds.includes(program);
+const isValidSeasonId = season => seasonIds.includes(season);
+const isValidEventSku = sku => /^RE-(?:VRC|VEXU|VIQC|TSA)-[0-9]{2}-[0-9]{4}$/i.test(sku);
