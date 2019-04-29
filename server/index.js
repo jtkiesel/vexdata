@@ -323,6 +323,24 @@ router.get('/matches', (req, res) => {
     .catch(err => serverError(res, err));
 });
 
+router.get('/rankings/:sku/:team', (req, res) => {
+  const sku = validateSku(req.params.sku);
+  if (sku === undefined) {
+    return badSku(res);
+  }
+  const id = validateId(req.params.team);
+  if (id === undefined) {
+    return badId(res);
+  }
+  rankings.find({'_id.event': sku, '_id.team': id}).limit(1).toArray()
+    .then(rankings => {
+      if (rankings.length === 0) {
+        return notFound(res, 'Ranking not found');
+      }
+      res.json(rankings[0]);
+    }).catch(err => serverError(res, err));
+});
+
 router.get('*', (_, res) => notFound(res, 'no such endpoint'));
 /*
 app.get('/api/program/:program/team/:id/stats', (req, res) => {

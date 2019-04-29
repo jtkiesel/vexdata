@@ -1,11 +1,11 @@
 import React, { Component, Fragment } from 'react';
 import { RouteComponentProps } from 'react-router';
-import Card from '@material/react-card';
-import { Grid, Row, Cell } from '@material/react-layout-grid';
-import List, { ListItem, ListItemText, ListDivider, ListItemMeta } from '@material/react-list';
-import Tab from '@material/react-tab';
-import TabBar from '@material/react-tab-bar';
-import { Headline4, Headline5, Headline6 } from '@material/react-typography';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
+import List, { ListItem, ListItemText, ListItemMeta } from '@material/react-list';
+import { Tab, TabBar } from '@rmwc/tabs';
 
 import TeamEvent from './TeamEvent';
 import vex from '../vex';
@@ -86,7 +86,7 @@ type TeamStats = {
 
 class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
   state: TeamState = {
-    seasonIndex: 0,
+    seasonIndex: -1,
     teams: [],
     events: [],
     stats: {
@@ -112,7 +112,7 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
     }).catch(console.error);
   }
 
-  handleSeasonIndexUpdate(seasonIndex: number) {
+  onSeasonActivate(seasonIndex: number) {
     this.updateEvents(seasonIndex);
     this.setState({seasonIndex});
     const search = new URLSearchParams(this.props.location.search);
@@ -177,82 +177,85 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
   render() {
     return (
       <Fragment>
-        <Headline4 className="title">{this.getTeamTitle()}</Headline4>
+        <Typography variant="h4" className="title">{this.getTeamTitle()}</Typography>
         <TabBar
-          activeIndex={this.state.seasonIndex}
-          handleActiveIndexUpdate={activeIndex => this.handleSeasonIndexUpdate(activeIndex)}
+          activeTabIndex={this.state.seasonIndex}
+          onActivate={event => {this.onSeasonActivate(event.detail.index)}}
         >
           {this.state.teams.map((team, index) => (
-            <Tab
-              active={this.state.seasonIndex === index}
-              key={team._id.season}
-            >
-              <span className="mdc-tab__text-label">{vex.decodeSeason(team._id.season)}</span>
-            </Tab>
+            <Tab key={team._id.season}>{vex.decodeSeason(team._id.season)}</Tab>
           ))}
         </TabBar>
-        <Grid>
-          <Row>
-            <Cell desktopColumns={6} tabletColumns={8}>
+        <div style={{ padding: 16 }}>
+          <Grid container spacing={16}>
+            <Grid item xs={12} sm={8} md={6} lg={4} xl={3}>
               <Card>
-                <Headline5 className="card-title">Info</Headline5>
-                <List nonInteractive>
-                  <ListItem>
-                    <ListItemText className="list-item-text" primaryText="Name" />
-                    <ListItemMeta meta={this.getName()} />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText className="list-item-text" primaryText="Organization" />
-                    <ListItemMeta meta={this.getOrganization()} />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText className="list-item-text" primaryText="Location" />
-                    <ListItemMeta className="location" meta="">{this.getLocation()}</ListItemMeta>
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText className="list-item-text" primaryText="Grade" />
-                    <ListItemMeta meta={this.getGrade()} />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText className="list-item-text" primaryText="Robot" />
-                    <ListItemMeta meta={this.getRobot()} />
-                  </ListItem>
-                </List>
+                <CardContent>
+                  <Typography variant="h5" className="card-title">Info</Typography>
+                  <List nonInteractive>
+                    <ListItem>
+                      <ListItemText className="list-item-text" primaryText="Name" />
+                      <ListItemMeta meta={this.getName()} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText className="list-item-text" primaryText="Organization" />
+                      <ListItemMeta meta={this.getOrganization()} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText className="list-item-text" primaryText="Location" />
+                      <ListItemMeta className="location" meta="">{this.getLocation()}</ListItemMeta>
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText className="list-item-text" primaryText="Grade" />
+                      <ListItemMeta meta={this.getGrade()} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText className="list-item-text" primaryText="Robot" />
+                      <ListItemMeta meta={this.getRobot()} />
+                    </ListItem>
+                  </List>
+                </CardContent>
               </Card>
-            </Cell>
-            <Cell desktopColumns={6} tabletColumns={8}>
+            </Grid>
+            <Grid item xs={12} sm={8} md={6} lg={4} xl={3}>
               <Card>
-                <Headline5 className="card-title">Stats</Headline5>
-                <List nonInteractive>
-                  <ListItem>
-                    <ListItemText className="list-item-text" primaryText="OPR" />
-                    <ListItemMeta meta={this.state.stats.opr.toFixed(2)} />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText className="list-item-text" primaryText="DPR" />
-                    <ListItemMeta meta={this.state.stats.dpr.toFixed(2)} />
-                  </ListItem>
-                  <ListItem>
-                    <ListItemText className="list-item-text" primaryText="CCWM" />
-                    <ListItemMeta meta={this.state.stats.ccwm.toFixed(2)} />
-                  </ListItem>
-                </List>
+                <CardContent>
+                  <Typography variant="h5" className="card-title">Stats</Typography>
+                  <List nonInteractive>
+                    <ListItem>
+                      <ListItemText className="list-item-text" primaryText="OPR" />
+                      <ListItemMeta meta={this.state.stats.opr.toFixed(2)} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText className="list-item-text" primaryText="DPR" />
+                      <ListItemMeta meta={this.state.stats.dpr.toFixed(2)} />
+                    </ListItem>
+                    <ListItem>
+                      <ListItemText className="list-item-text" primaryText="CCWM" />
+                      <ListItemMeta meta={this.state.stats.ccwm.toFixed(2)} />
+                    </ListItem>
+                  </List>
+                </CardContent>
               </Card>
-            </Cell>
+            </Grid>
+          </Grid>
+          <Grid container spacing={16} style={{paddingTop: 8}}>
             {this.state.events.map(event => (
-              <Cell desktopColumns={6} tabletColumns={8} key={event._id}>
+              <Grid item xs={12} sm={8} md={6} lg={4} xl={3} key={event._id}>
                 <Card>
-                  <TeamEvent
-                    team={this.getTeam()._id.id}
-                    sku={event._id}
-                    name={event.name}
-                    divisions={event.divisions}
-                  />
+                  <CardContent>
+                    <TeamEvent
+                      team={this.getTeam()._id.id}
+                      sku={event._id}
+                      name={event.name}
+                      divisions={event.divisions}
+                    />
+                  </CardContent>
                 </Card>
-              </Cell>
+              </Grid>
             ))}
-          </Row>
-        </Grid>
+          </Grid>
+        </div>
       </Fragment>
     );
   }
