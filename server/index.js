@@ -13,7 +13,7 @@ const mongoOptions = {
   useNewUrlParser: true
 };
 
-let db, teams, events, skills, matches, rankings, maxSkills;
+let db, teams, events, skills, matches, rankings, awards, maxSkills;
 
 const badQuery = (res, msg) => res.status(400).send(`Query Error: ${msg}`);
 const notFound = (res, msg) => res.status(404).send(`Not Found: ${msg}`);
@@ -100,17 +100,19 @@ router.get('/teams', (req, res) => {
   if (req.query.sort !== undefined) {
     const fields = req.query.sort.split(',');
     for (let field of fields) {
-      const order = field.charAt(0);
-      if (order === '-') {
+      const sign = field.charAt(0);
+      let order = 1;
+      if (sign === '-') {
         field = field.slice(1);
+        order = -1;
       }
-      if (!['season'].includes(field)) {
+      if (!['id', 'season'].includes(field)) {
         return badQuery(res, `invalid sort field "${field}"`);
       }
       if (['id', 'season'].includes(field)) {
         field = `_id.${field}`;
       }
-      sort[field] = (order === '-') ? -1 : 1;
+      sort[field] = order;
     }
   }
   if (req.query.skip !== undefined) {
@@ -199,9 +201,11 @@ router.get('/events', (req, res) => {
   if (req.query.sort !== undefined) {
     const fields = req.query.sort.split(',');
     for (let field of fields) {
-      const order = field.charAt(0);
-      if (order === '-') {
+      const sign = field.charAt(0);
+      let order = 1;
+      if (sign === '-') {
         field = field.slice(1);
+        order = -1;
       }
       if (!['sku', 'start', 'end'].includes(field)) {
         return badQuery(res, `invalid sort field "${field}"`);
@@ -209,7 +213,7 @@ router.get('/events', (req, res) => {
       if (field === 'sku') {
         field = '_id';
       }
-      sort[field] = (order === '-') ? -1 : 1;
+      sort[field] = order;
     }
   }
   if (req.query.skip !== undefined) {
@@ -293,17 +297,19 @@ router.get('/matches', (req, res) => {
   if (req.query.sort !== undefined) {
     const fields = req.query.sort.split(',');
     for (let field of fields) {
-      const order = field.charAt(0);
-      if (order === '-') {
+      const sign = field.charAt(0);
+      let order = 1;
+      if (sign === '-') {
         field = field.slice(1);
+        order = -1;
       }
-      if (!['sku', 'start', 'end'].includes(field)) {
+      if (!['event', 'start', 'end'].includes(field)) {
         return badQuery(res, `invalid sort field "${field}"`);
       }
-      if (field === 'sku') {
-        field = '_id';
+      if (['event'].includes(field)) {
+        field = `_id.${field}`;
       }
-      sort[field] = (order === '-') ? -1 : 1;
+      sort[field] = order;
     }
   }
   if (req.query.skip !== undefined) {
@@ -323,22 +329,52 @@ router.get('/matches', (req, res) => {
     .catch(err => serverError(res, err));
 });
 
-router.get('/rankings/:sku/:team', (req, res) => {
-  const sku = validateSku(req.params.sku);
-  if (sku === undefined) {
+router.get('/rankings/:event/:team', (req, res) => {
+  const event = validateSku(req.params.event);
+  if (event === undefined) {
     return badSku(res);
   }
   const id = validateId(req.params.team);
   if (id === undefined) {
     return badId(res);
   }
-  rankings.find({'_id.event': sku, '_id.team': id}).limit(1).toArray()
+  rankings.find({'_id.event': event, '_id.team': id}).limit(1).toArray()
     .then(rankings => {
       if (rankings.length === 0) {
         return notFound(res, 'Ranking not found');
       }
       res.json(rankings[0]);
     }).catch(err => serverError(res, err));
+});
+
+router.get('/awards', (req, res) => {
+  const query = {};
+  const projection = {};
+  const sort = {};
+  let skip = 0;
+  let limit = 1000;
+
+  if (req.query.event !== undefined) {
+    const event = validateSku(req.query.event);
+    if (event === undefined) {
+      return badSku(res);
+    }
+    query['_id.event'] = event;
+  }
+  if (req.query.teams !== undefined) {
+    const teams = [];
+    for (const team of req.query.teams.split(',')) {
+      const id = validateId(team);
+      if (id === undefined) {
+        return badId(res);
+      }
+      teams.push(id);
+    }
+    query.team = {$in: teams};
+  }
+  awards.find(query).project(projection).sort(sort).skip(skip).limit(limit).toArray()
+    .then(teams => res.json(teams))
+    .catch(err => serverError(res, err));
 });
 
 router.get('*', (_, res) => notFound(res, 'no such endpoint'));
@@ -395,6 +431,7 @@ MongoClient.connect(dbUri, mongoOptions).then(mongoClient => {
   skills = db.collection('skills');
   matches = db.collection('matches');
   rankings = db.collection('rankings');
+  awards = db.collection('awards');
   maxSkills = db.collection('maxSkills');
 
   app.listen(port, () => console.info(`Listening on port ${port}`));

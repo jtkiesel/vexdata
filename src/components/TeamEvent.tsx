@@ -1,5 +1,4 @@
 import React, { Component, Fragment } from 'react';
-import { Link } from 'react-router-dom';
 import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -8,6 +7,7 @@ import Typography from '@material-ui/core/Typography';
 
 import vex from '../vex';
 import './Team.scss';
+import { ListItemMeta } from '@material/react-list';
 
 type TeamEventProps = {
   team: string,
@@ -19,7 +19,9 @@ type TeamEventProps = {
 type TeamEventState = {
   ranking: VexRanking,
   matchesOpen: boolean,
-  matches: VexMatch[]
+  matches: VexMatch[],
+  awardsOpen: boolean,
+  awards: VexAward[]
 };
 
 type DivisionMap = {
@@ -66,9 +68,20 @@ type VexMatch = {
   blueScore: number
 };
 
+type VexAward = {
+  _id: {
+    event: string,
+    index: number
+  },
+  name: string,
+  division: string,
+  team: string | undefined
+};
+
 const rounds: {[key: number]: string} = {
 	1: 'P',
 	2: 'Q',
+	16: 'RR',
 	9: 'R128',
 	8: 'R64',
 	7: 'R32',
@@ -79,7 +92,7 @@ const rounds: {[key: number]: string} = {
 	15: 'F'
 };
 
-const roundKeys = [1, 2, 9, 8, 7, 6, 3, 4, 5, 15];
+const roundKeys = [1, 2, 16, 9, 8, 7, 6, 3, 4, 5, 15];
 
 const roundIndex = (round: number) => roundKeys.indexOf(round);
 
@@ -117,17 +130,22 @@ class TeamEvent extends Component<TeamEventProps, TeamEventState> {
   state: TeamEventState = {
     ranking: {} as VexRanking,
     matchesOpen: false,
-    matches: [] as VexMatch[]
+    matches: [] as VexMatch[],
+    awardsOpen: false,
+    awards: [] as VexAward[]
   };
 
   componentDidMount() {
     const {team, sku} = this.props;
-    vex.callApi(`/api/rankings/${sku}/${team}`).then((ranking: VexRanking) => {
-      this.setState({ranking});
-    }).catch(console.error);
-    vex.callApi(`/api/matches?event=${sku}&teams=${team}`).then((matches: VexMatch[]) => {
-      this.setState({matches: matches.sort()});
-    }).catch(console.error);
+    vex.callApi(`/api/rankings/${sku}/${team}`)
+      .then((ranking: VexRanking) => this.setState({ranking}))
+      .catch(console.error);
+    vex.callApi(`/api/matches?event=${sku}&teams=${team}`)
+      .then((matches: VexMatch[]) => this.setState({matches}))
+      .catch(console.error);
+    vex.callApi(`/api/awards?event=${sku}&teams=${team}`)
+      .then((awards: VexAward[]) => this.setState({awards}))
+      .catch(console.error);
   }
 
   render() {
@@ -137,7 +155,7 @@ class TeamEvent extends Component<TeamEventProps, TeamEventState> {
         <List>
           <ListItem button onClick={() => this.setState(state => ({matchesOpen: !state.matchesOpen}))}>
             <ListItemText primary="Ranking" />
-            <ListItemText primary={getRanking(this.state.ranking)} />
+            <Typography variant="subtitle1"><ListItemMeta meta={getRanking(this.state.ranking)} /></Typography>
           </ListItem>
           <Collapse in={this.state.matchesOpen} timeout="auto" unmountOnExit>
             <table className="matches">
@@ -178,6 +196,22 @@ class TeamEvent extends Component<TeamEventProps, TeamEventState> {
                 })}
               </tbody>
             </table>
+          </Collapse>
+          <ListItem button onClick={() => this.setState(state => ({awardsOpen: !state.awardsOpen}))}>
+            <ListItemText primary="Awards" />
+            <Typography variant="subtitle1"><ListItemMeta meta={this.state.awards.length.toString()} /></Typography>
+          </ListItem>
+          <Collapse in={this.state.awardsOpen} timeout="auto" unmountOnExit>
+            <List>
+              {this.state.awards.sort((a, b) => a._id.index - b._id.index).map(award => {
+                const awardTitle = `${award.division} | ${award.name}`;
+                return (
+                  <ListItem key={`${award._id.event}.${award._id.index}`}>
+                    <ListItemText primary={awardTitle} />
+                  </ListItem>
+                );
+              })}
+            </List>
           </Collapse>
         </List>
       </Fragment>
