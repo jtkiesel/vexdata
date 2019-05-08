@@ -1,3 +1,5 @@
+import axios, { AxiosRequestConfig } from 'axios';
+
 const programs: {[key: number]: string} = {
   1: 'VRC',
   4: 'VEXU',
@@ -49,14 +51,14 @@ export const decodeProgram = (id: number) => programs[id];
 export const decodeSeason = (id: number) => seasons[id];
 export const decodeGrade = (id: number) => grades[id];
 
-export const callApi = (input: RequestInfo, init?: RequestInit | undefined) => {
-  return fetch(input, init).then(response => {
-    if (!response.ok) {
+export const callApi = (url: string, config?: AxiosRequestConfig) => {
+  return axios(url, config).then(response => {
+    if (response.status < 200 || response.status > 299) {
     	throw Error(response.statusText);
     }
     return response;
   }).then(response => {
-    return response.json();
+    return response.data;
   });
 };
 

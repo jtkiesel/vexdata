@@ -177,7 +177,7 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
   render() {
     return (
       <Fragment>
-        <Typography variant="h4" className="title">{this.getTeamTitle()}</Typography>
+        <Typography variant="h4" className="team-title">{this.getTeamTitle()}</Typography>
         <TabBar
           activeTabIndex={this.state.seasonIndex}
           onActivate={event => {this.onSeasonActivate(event.detail.index)}}

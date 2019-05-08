@@ -187,7 +187,8 @@ class TeamEvent extends Component<TeamEventProps, TeamEventState> {
                                     <Typography className={alliance.teams.includes(this.props.team) ? 'current-team' : ''}>{alliance.score}</Typography>
                                   </td>
                                 </tr>
-                            ))}
+                              ))
+                            }
                           </tbody>
                         </table>
                       </td>

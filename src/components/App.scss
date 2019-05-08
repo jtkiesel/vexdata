@@ -1,56 +1,45 @@
 //$mdc-theme-primary: #2196f3;
 
-@import "@material/react-drawer/index.scss";
-@import "@material/react-list/index.scss";
-@import "@material/react-material-icon/index.scss";
-@import "@material/react-text-field/index.scss";
-@import "@material/react-top-app-bar/index.scss";
-
-@import "@material/theme/mdc-theme";
-
-@import "@material/textfield/mixins";
-
-.drawer {
-  position: fixed;
-  top: 0;
+.menu-icon {
+  margin: 11px 16px;
+  cursor: pointer;
 }
 
-.drawer-app-bar {
-  width: inherit;
+.search-bar {
+  width: 240px;
+  height: 32px;
+  margin-left: auto;
+  margin-right: 16px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
-.search {
-  position: absolute;
-  right: 0;
-  width: 50%;
-  border: 0;
-  z-index: 4;
-
-  @include mdc-text-field-ink-color(white);
-  @include mdc-text-field-label-color(white);
-  @include mdc-text-field-caret-color(white);
-  @include mdc-text-field-fullwidth-bottom-line-color(white);
-}
-
-.search-icon {
-  color: white!important;
-}
-
-/*.search {
-  width: 50%;
-
-  &::before {
-    top: unset;
-    left: unset;
-    width: unset;
-    height: unset;
+.search-input {
+  margin-left: 4px;
+  margin-right: 0px;
+  input {
+    color: white;
   }
 }
 
-.mdc-top-app-bar__action-item::after {
-  border-radius: unset;
+.search-icon {
+  margin-top: 6px;
+  margin-right: 2px;
+  float: right;
 }
 
-.mdc-text-field::before {
-  border-radius: unset;
-}*/
+.navigation-list {
+  width: 240px;
+}
+
+.search-container {
+  margin: 11px 16px;
+}
+
+.search-field {
+  width: 350px;
+}
+
+.search-list {
+  width: 400px;
+}

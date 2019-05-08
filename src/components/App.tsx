@@ -1,106 +1,222 @@
-import React, { Component } from 'react';
+import React, { Component, Fragment, ReactElement } from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
-import TopAppBar, { TopAppBarFixedAdjust } from '@material/react-top-app-bar';
-import Drawer, { DrawerContent } from '@material/react-drawer';
-import MaterialIcon from '@material/react-material-icon';
-import List, { ListItem, ListItemGraphic, ListItemText } from '@material/react-list';
+import axios, { CancelTokenSource } from 'axios';
+import { AppBar, Drawer, Toolbar, Typography, List, ListItem, ListItemIcon, ListItemText, InputBase, TextField, SvgIcon } from '@material-ui/core';
+import { Event, FormatListNumbered, Menu, RecentActors, Search } from '@material-ui/icons';
 
+import vex from '../vex';
 import './App.scss';
 
 type AppState = {
-  open: boolean,
-  selectedIndex: number,
-  search: string
+  navigationOpen: boolean,
+  searchOpen: boolean,
+  teams: VexTeam[],
+  searchToken: CancelTokenSource | undefined
+};
+
+type VexTeam = {
+  _id: {
+    id: string,
+    season: number
+  },
+  program: number,
+  name: string | undefined,
+  org: string | undefined,
+  lat: number,
+  lng: number,
+  city: string,
+  region: string | undefined,
+  country: string | undefined,
+  grade: number | undefined,
+  robot: string | undefined
+};
+
+const ProgramIcon = (props: { program: number; }) => {
+  if (!props.program) {
+    return null;
+  }
+  switch (props.program) {
+    case 4: return (
+      <SvgIcon viewBox="0 0 24 24">
+        <path fill="none" d="M0,0h24v24H0V0z"/>
+        <path fill="#F44336" d="M21.3,0H2.7C1.2,0,0,1.2,0,2.7v18.7C0,22.8,1.2,24,2.7,24h18.7c1.5,0,2.7-1.2,2.7-2.7V2.7C24,1.2,22.8,0,21.3,0z"/>
+        <path fill="#FFFFFF" d="M15,13.1c0,1.6-1.3,3-3,3s-3-1.3-3-3V4H5.1v9.1c0,3.8,3,6.9,6.9,6.9s6.9-3,6.9-6.9V4H15V13.1z"/>
+      </SvgIcon>
+    );
+    case 41: return (
+      <SvgIcon viewBox="0 0 24 24">
+        <path fill="none" d="M0,0h24v24H0V0z"/>
+        <path fill="#2196F3" d="M21.2,0H2.7C1.2,0,0,1.2,0,2.7v18.7C0,22.8,1.2,24,2.7,24h18.6c1.5,0,2.7-1.2,2.7-2.7V2.7C23.9,1.2,22.7,0,21.2,0z M13.8,20h-4L5.3,4h4l2.7,9.1L14.6,4h4L13.8,20z"/>
+      </SvgIcon>
+    );
+    default: return (
+      <SvgIcon viewBox="0 0 24 24">
+        <path fill="none" d="M0,0h24v24H0V0z"/>
+        <path fill="#F44336" d="M21.3,0H2.7C1.2,0,0,1.2,0,2.7v18.7C0,22.8,1.2,24,2.7,24h18.7c1.5,0,2.7-1.2,2.7-2.7V2.7C24,1.2,22.8,0,21.3,0z M13.9,20h-4L5.3,4h4l2.7,9.1L14.7,4h4L13.9,20z"/>
+      </SvgIcon>
+    );
+  }
 };
 
 class App extends Component<RouteComponentProps, AppState> {
   state: AppState = {
-    open: false,
-    selectedIndex: this.getSelectedIndex(),
-    search: ''
+    navigationOpen: false,
+    searchOpen: false,
+    teams: [] as VexTeam[],
+    searchToken: undefined
   };
 
-  getSelectedIndex() {
-    switch (this.props.location.pathname) {
-      case '/teams': return 0;
-      case '/events': return 1;
-      case '/skills': return 2;
-      default: return -1;
-    }
+  isSelected(path: string) {
+    return this.props.location.pathname === path;
+  }
+
+  getColor(path: string) {
+    return this.isSelected(path) ? 'primary' : 'action';
   }
 
   onNavigationIconClick() {
-    this.setState(state => ({open: !state.open}));
+    this.setState(state => ({navigationOpen: !state.navigationOpen}));
   }
 
-  onListItemClick(event: React.MouseEvent<HTMLElement, MouseEvent>, link: string) {
-    this.props.history.push(link);
+  onSearchFocus(event: React.FocusEvent<HTMLDivElement>) {
+    this.setState(state => ({searchOpen: !state.searchOpen}));
+    event.target.blur();
+  }
+
+  onNavigationItemClick(event: React.MouseEvent<HTMLElement, MouseEvent>, path: string) {
+    this.props.history.push(path);
+    this.setState({navigationOpen: false});
     event.preventDefault();
   }
 
   onSearchChange(search: string) {
-    this.setState({search});
+    if (this.state.searchToken) {
+      this.state.searchToken.cancel();
+    }
+    if (search) {
+      const searchToken = axios.CancelToken.source();
+      this.setState({searchToken});
+      vex.callApi(`/api/teams?search=${search}&sort=id,-season&limit=10`, {cancelToken: searchToken.token})
+        .then((teams: VexTeam[]) => this.setState({teams}))
+        .catch(console.error);
+    } else {
+      this.setState({teams: []});
+    }
   }
 
   render() {
+    const toolbarItems = (
+      <Fragment>
+        <Menu
+          className="menu-icon"
+          color="inherit"
+          aria-label="Open Drawer"
+          onClick={() => this.onNavigationIconClick()}
+        />
+        <Typography
+          className="title"
+          variant="h6"
+          color="inherit"
+          noWrap
+        >
+          VEX Data
+        </Typography>
+      </Fragment>
+    );
+
     return (
       <div>
-        <TopAppBar
-          title="VEX Data"
-          navigationIcon={<MaterialIcon
-            icon="menu"
-            onClick={() => this.onNavigationIconClick()}
-          />}
-        />
-        <TopAppBarFixedAdjust>{this.props.children}</TopAppBarFixedAdjust>
+        <AppBar position="static">
+          <Toolbar disableGutters variant="dense">
+            {toolbarItems}
+            <div className="search-bar">
+              <InputBase
+                className="search-input"
+                placeholder="Search"
+                onFocus={event => this.onSearchFocus(event)}
+              />
+              <Search className="search-icon" />
+            </div>
+          </Toolbar>
+        </AppBar>
+        {this.props.children}
         <Drawer
-          className="drawer"
-          modal
-          open={this.state.open}
-          onClose={() => this.setState({open: false})}
+          open={this.state.navigationOpen}
+          onClose={() => this.setState({navigationOpen: false})}
         >
-          <TopAppBar
-            className="drawer-app-bar"
-            title="VEX Data"
-            navigationIcon={<MaterialIcon
-              icon="menu"
-              onClick={() => this.onNavigationIconClick()}
-            />}
-          />
-          <TopAppBarFixedAdjust>
-            <DrawerContent>
-              <List
-                singleSelection
-                selectedIndex={this.state.selectedIndex}
-                handleSelect={selectedIndex => this.setState({open: false, selectedIndex})}
+          <AppBar position="static">
+            <Toolbar disableGutters variant="dense">
+              {toolbarItems}
+            </Toolbar>
+          </AppBar>
+          <List className="navigation-list">
+            <ListItem
+              button
+              component="a"
+              href="/teams"
+              onClick={event => this.onNavigationItemClick(event, '/teams')}
+              selected={this.isSelected('/teams')}
+            >
+              <ListItemIcon>
+                <RecentActors color={this.getColor('/teams')} />
+              </ListItemIcon>
+              <ListItemText primary="Teams" />
+            </ListItem>
+            <ListItem
+              button
+              component="a"
+              href="/events"
+              onClick={event => this.onNavigationItemClick(event, '/events')}
+              selected={this.isSelected('/events')}
+            >
+              <ListItemIcon>
+                <Event color={this.getColor('/events')} />
+              </ListItemIcon>
+              <ListItemText primary="Events" />
+            </ListItem>
+            <ListItem
+              button
+              component="a"
+              href="/skills"
+              onClick={event => this.onNavigationItemClick(event, '/skills')}
+              selected={this.isSelected('/skills')}
+            >
+              <ListItemIcon>
+                <FormatListNumbered color={this.getColor('/skills')} />
+              </ListItemIcon>
+              <ListItemText primary="Skills" />
+            </ListItem>
+          </List>
+        </Drawer>
+        <Drawer
+          anchor="right"
+          open={this.state.searchOpen}
+          onClose={() => this.setState({searchOpen: false})}
+        >
+          <div className="search-container">
+            <TextField
+              className="search-field"
+              autoFocus
+              placeholder="Search"
+              onChange={event => this.onSearchChange(event.target.value)}
+            />
+            <Search className="search-icon" />
+          </div>
+          <List className="search-list">
+            {this.state.teams.map(team => (
+              <ListItem
+                button
+                component="a"
+                href={`/teams/${vex.decodeProgram(team.program)}/${team._id.id}`}
+                key={`${team.program}.${team._id.id}`}
               >
-                <ListItem
-                  tag="a"
-                  href="/teams"
-                  onClick={event => this.onListItemClick(event, '/teams')}
-                >
-                  <ListItemGraphic graphic={<MaterialIcon icon="recent_actors" />} />
-                  <ListItemText primaryText="Teams" />
-                </ListItem>
-                <ListItem
-                  tag="a"
-                  href="/events"
-                  onClick={event => this.onListItemClick(event, '/events')}
-                >
-                  <ListItemGraphic graphic={<MaterialIcon icon="event" />} />
-                  <ListItemText primaryText="Events" />
-                </ListItem>
-                <ListItem
-                  tag="a"
-                  href="/skills"
-                  onClick={event => this.onListItemClick(event, '/skills')}
-                >
-                  <ListItemGraphic graphic={<MaterialIcon icon="format_list_numbered" />} />
-                  <ListItemText primaryText="Skills" />
-                </ListItem>
-              </List>
-            </DrawerContent>
-          </TopAppBarFixedAdjust>
+                <ListItemIcon>
+                  <ProgramIcon program={team.program} />
+                </ListItemIcon>
+                <ListItemText primary={team._id.id} secondary={team.name} />
+              </ListItem>
+            ))}
+          </List>
         </Drawer>
       </div>
     );

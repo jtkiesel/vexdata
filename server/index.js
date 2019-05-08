@@ -65,9 +65,12 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 router.get('/teams', (req, res) => {
-  const query = {};
-  const projection = teamHideSensitive;
+  const aggregate = [];
+  const match = {};
   const sort = {};
+  const collation = {locale: 'en', numericOrdering: true};
+  const group = {};
+  const project = teamHideSensitive;
   let skip = 0;
   let limit = 1000;
 
@@ -76,26 +79,21 @@ router.get('/teams', (req, res) => {
     if (program === undefined) {
       return badProgram(res);
     }
-    query.program = program;
+    match.program = program;
   }
   if (req.query.id !== undefined) {
     const id = validateId(req.query.id);
     if (id === undefined) {
       return badId(res);
     }
-    query['_id.id'] = id;
+    match['_id.id'] = id;
   }
   if (req.query.season !== undefined) {
     const season = validateSeason(req.query.season);
     if (season === undefined) {
       return badSeason(res);
     }
-    query['_id.season'] = season;
-  }
-  if (req.query.search !== undefined) {
-    query.$text = req.query.search;
-    projection.score = {$meta: 'textScore'};
-    sort.score = {$meta: 'textScore'};
+    match['_id.season'] = season;
   }
   if (req.query.sort !== undefined) {
     const fields = req.query.sort.split(',');
@@ -115,6 +113,27 @@ router.get('/teams', (req, res) => {
       sort[field] = order;
     }
   }
+  if (req.query.search !== undefined) {
+    match['_id.id'] = new RegExp(`^${req.query.search}`, 'i');
+    group._id = {id: '$_id.id', program: '$program'};
+    group.data = {$first: '$$ROOT'};
+    if (req.query.sort !== undefined) {
+      aggregate.push({$sort: sort});
+    }
+    aggregate.push({$match: match}, {$group: group});
+    if (req.query.sort !== undefined) {
+      aggregate.push({$sort: sort});
+    }
+    aggregate.push({$replaceRoot: {newRoot: '$data'}});
+    /*query.$text = {$search: req.query.search};
+    projection.score = {$meta: 'textScore'};
+    sort.score = {$meta: 'textScore'};*/
+  } else {
+    aggregate.push({$match: match});
+    if (req.query.sort !== undefined) {
+      aggregate.push({$sort: sort});
+    }
+  }
   if (req.query.skip !== undefined) {
     skip = validateSkip(req.query.skip);
     if (skip === undefined) {
@@ -127,7 +146,8 @@ router.get('/teams', (req, res) => {
       return badLimit(res);
     }
   }
-  teams.find(query).project(projection).sort(sort).skip(skip).limit(limit).toArray()
+  aggregate.push({$project: project}, {$skip: skip}, {$limit: limit});
+  teams.aggregate(aggregate, {collation}).toArray()
     .then(teams => res.json(teams))
     .catch(err => serverError(res, err));
 });
