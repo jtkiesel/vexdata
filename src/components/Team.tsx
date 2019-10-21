@@ -25,10 +25,10 @@ type TeamState = {
 
 type VexTeam = {
   _id: {
+    program: number,
     id: string,
     season: number
   },
-  program: number,
   name: string | undefined,
   org: string | undefined,
   lat: number,
@@ -102,22 +102,22 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
 
   getTeamTitle() {
     const team = this.state.teams[0];
-    return team ? `${vex.decodeProgram(team.program)} ${team._id.id}` : '';
+    return team ? `${vex.decodeProgram(team._id.program)} ${team._id.id}` : '';
   }
 
   updateEvents(seasonIndex: number) {
-    const {id, season} = this.state.teams[seasonIndex]._id;
+    const { id, season } = this.state.teams[seasonIndex]._id;
     vex.callApi(`/api/events?teams=${id}&season=${season}&sort=-end`).then((events: VexEvent[]) => {
-      this.setState({events});
+      this.setState({ events });
     }).catch(console.error);
   }
 
   onSeasonActivate(seasonIndex: number) {
     this.updateEvents(seasonIndex);
-    this.setState({seasonIndex});
+    this.setState({ seasonIndex });
     const search = new URLSearchParams(this.props.location.search);
     search.set('season', vex.decodeSeason(this.state.teams[seasonIndex]._id.season).toLowerCase());
-    this.props.history.replace({search: search.toString()});
+    this.props.history.replace({ search: search.toString() });
   }
 
   getName() {
@@ -151,7 +151,7 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
   }
 
   componentDidMount() {
-    const {program, id} = this.props.match.params;
+    const { program, id } = this.props.match.params;
     vex.callApi(`/api/teams?id=${id}&program=${program}&sort=-season`).then((teams: VexTeam[]) => {
       let season = new URLSearchParams(this.props.location.search).get('season');
       let seasonIndex = 0;
@@ -180,14 +180,14 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
         <Typography variant="h4" className="team-title">{this.getTeamTitle()}</Typography>
         <TabBar
           activeTabIndex={this.state.seasonIndex}
-          onActivate={event => {this.onSeasonActivate(event.detail.index)}}
+          onActivate={event => this.onSeasonActivate(event.detail.index)}
         >
-          {this.state.teams.map((team, index) => (
+          {this.state.teams.map(team => (
             <Tab key={team._id.season}>{vex.decodeSeason(team._id.season)}</Tab>
           ))}
         </TabBar>
         <div style={{ padding: 16 }}>
-          <Grid container spacing={16}>
+          <Grid container spacing={2}>
             <Grid item xs={12} sm={8} md={6} lg={4} xl={3}>
               <Card>
                 <CardContent>
@@ -239,7 +239,7 @@ class Team extends Component<RouteComponentProps<TeamParams>, TeamState> {
               </Card>
             </Grid>
           </Grid>
-          <Grid container spacing={16} style={{paddingTop: 8}}>
+          <Grid container spacing={2} style={{ paddingTop: 8 }}>
             {this.state.events.map(event => (
               <Grid item xs={12} sm={8} md={6} lg={4} xl={3} key={event._id}>
                 <Card>

@@ -36,7 +36,10 @@ const seasons: {[key: number]: string} = {
 	'121': 'Ringmaster',
 	'124': 'Next Level',
 	'125': 'Turning Point',
-	'126': 'Turning Point'
+	'126': 'Turning Point',
+	'129': 'Squared Away',
+	'130': 'Tower Takeover',
+	'131': 'Tower Takeover'
 };
 
 const grades = [
@@ -51,15 +54,12 @@ export const decodeProgram = (id: number) => programs[id];
 export const decodeSeason = (id: number) => seasons[id];
 export const decodeGrade = (id: number) => grades[id];
 
-export const callApi = (url: string, config?: AxiosRequestConfig) => {
-  return axios(url, config).then(response => {
-    if (response.status < 200 || response.status > 299) {
-    	throw Error(response.statusText);
-    }
-    return response;
-  }).then(response => {
-    return response.data;
-  });
+export const callApi = async (url: string, config?: AxiosRequestConfig) => {
+  const response = await axios(url, config);
+	if (response.status < 200 || response.status > 299) {
+		throw Error(response.statusText);
+	}
+	return response.data;
 };
 
 export default {

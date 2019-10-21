@@ -78,7 +78,7 @@ type VexAward = {
   team: string | undefined
 };
 
-const rounds: {[key: number]: string} = {
+const rounds: { [key: number]: string } = {
 	1: 'P',
 	2: 'Q',
 	16: 'RR',
@@ -117,12 +117,12 @@ const matchCompare = (a: VexMatch, b: VexMatch) => {
 };
 
 const getRanking = (ranking: VexRanking) => {
-  const {rank, wins, losses, ties, wp, ap, sp} = ranking;
+  const { rank, wins, losses, ties, wp, ap, sp } = ranking;
   return rank ? `${rank} (${wins}-${losses}-${ties}) ${wp}/${ap}/${sp}` : '';
 };
 
 const getMatchTitle = (match: VexMatch) => {
-  const {round, instance, number} = match._id;
+  const { round, instance, number } = match._id;
   return `${decodeRound(round)}${round < 3 || round > 8 ? '' : ` ${instance}-`}${number}`;
 };
 
@@ -136,15 +136,15 @@ class TeamEvent extends Component<TeamEventProps, TeamEventState> {
   };
 
   componentDidMount() {
-    const {team, sku} = this.props;
+    const { team, sku } = this.props;
     vex.callApi(`/api/rankings/${sku}/${team}`)
-      .then((ranking: VexRanking) => this.setState({ranking}))
+      .then((ranking: VexRanking) => this.setState({ ranking }))
       .catch(console.error);
     vex.callApi(`/api/matches?event=${sku}&teams=${team}`)
-      .then((matches: VexMatch[]) => this.setState({matches}))
+      .then((matches: VexMatch[]) => this.setState({ matches }))
       .catch(console.error);
     vex.callApi(`/api/awards?event=${sku}&teams=${team}`)
-      .then((awards: VexAward[]) => this.setState({awards}))
+      .then((awards: VexAward[]) => this.setState({ awards }))
       .catch(console.error);
   }
 
@@ -153,7 +153,7 @@ class TeamEvent extends Component<TeamEventProps, TeamEventState> {
       <Fragment>
         <Typography variant="h5">{this.props.name}</Typography>
         <List>
-          <ListItem button onClick={() => this.setState(state => ({matchesOpen: !state.matchesOpen}))}>
+          <ListItem button onClick={() => this.setState(state => ({ matchesOpen: !state.matchesOpen }))}>
             <ListItemText primary="Ranking" />
             <Typography variant="subtitle1"><ListItemMeta meta={getRanking(this.state.ranking)} /></Typography>
           </ListItem>
@@ -168,13 +168,13 @@ class TeamEvent extends Component<TeamEventProps, TeamEventState> {
                       <td>
                         <Typography>{this.props.divisions ? this.props.divisions[match._id.division] : ''}</Typography>
                         <Typography>{matchTitle}</Typography>
-                        <Typography color="textSecondary">{date ? new Date(date).toLocaleString(undefined, {month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric'}) : ''}</Typography>
+                        <Typography color="textSecondary">{date ? new Date(date).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' }) : ''}</Typography>
                       </td>
                       <td>
                         <table className="alliances">
                           <tbody>
-                            {[{name: 'red', teams: match.red, score: match.redScore},
-                              {name: 'blue', teams: match.blue, score: match.blueScore}].map(alliance => (
+                            {[{ name: 'red', teams: match.red, score: match.redScore },
+                              { name: 'blue', teams: match.blue, score: match.blueScore }].map(alliance => (
                                 <tr key={alliance.name}>
                                   {alliance.teams.map(team => (
                                     <td className={`alliance ${alliance.name}-alliance team`} key={team}>
@@ -198,7 +198,7 @@ class TeamEvent extends Component<TeamEventProps, TeamEventState> {
               </tbody>
             </table>
           </Collapse>
-          <ListItem button onClick={() => this.setState(state => ({awardsOpen: !state.awardsOpen}))}>
+          <ListItem button onClick={() => this.setState(state => ({ awardsOpen: !state.awardsOpen }))}>
             <ListItemText primary="Awards" />
             <Typography variant="subtitle1"><ListItemMeta meta={this.state.awards.length.toString()} /></Typography>
           </ListItem>

@@ -1,4 +1,4 @@
-import React, { Component, Fragment, ReactElement } from 'react';
+import React, { Component, FocusEvent, Fragment, MouseEvent } from 'react';
 import { RouteComponentProps, withRouter } from 'react-router-dom';
 import axios, { CancelTokenSource } from 'axios';
 import { AppBar, Drawer, Toolbar, Typography, List, ListItem, ListItemIcon, ListItemText, InputBase, TextField, SvgIcon } from '@material-ui/core';
@@ -11,15 +11,16 @@ type AppState = {
   navigationOpen: boolean,
   searchOpen: boolean,
   teams: VexTeam[],
-  searchToken: CancelTokenSource | undefined
+  searchToken: CancelTokenSource | undefined,
+  searchCache: { [key: string]: VexTeam[] }
 };
 
 type VexTeam = {
   _id: {
+    program: number,
     id: string,
     season: number
   },
-  program: number,
   name: string | undefined,
   org: string | undefined,
   lat: number,
@@ -31,7 +32,7 @@ type VexTeam = {
   robot: string | undefined
 };
 
-const ProgramIcon = (props: { program: number; }) => {
+const ProgramIcon = (props: { program: number }) => {
   if (!props.program) {
     return null;
   }
@@ -63,7 +64,8 @@ class App extends Component<RouteComponentProps, AppState> {
     navigationOpen: false,
     searchOpen: false,
     teams: [] as VexTeam[],
-    searchToken: undefined
+    searchToken: undefined,
+    searchCache: {}
   };
 
   isSelected(path: string) {
@@ -75,17 +77,17 @@ class App extends Component<RouteComponentProps, AppState> {
   }
 
   onNavigationIconClick() {
-    this.setState(state => ({navigationOpen: !state.navigationOpen}));
+    this.setState(state => ({ navigationOpen: !state.navigationOpen }));
   }
 
-  onSearchFocus(event: React.FocusEvent<HTMLDivElement>) {
-    this.setState(state => ({searchOpen: !state.searchOpen}));
+  onSearchFocus(event: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
+    this.setState({ searchOpen: true });
     event.target.blur();
   }
 
-  onNavigationItemClick(event: React.MouseEvent<HTMLElement, MouseEvent>, path: string) {
+  onNavigationItemClick(event: MouseEvent, path: string) {
     this.props.history.push(path);
-    this.setState({navigationOpen: false});
+    this.setState({ navigationOpen: false });
     event.preventDefault();
   }
 
@@ -94,13 +96,24 @@ class App extends Component<RouteComponentProps, AppState> {
       this.state.searchToken.cancel();
     }
     if (search) {
+      const cached = this.state.searchCache[search];
+      if (cached) {
+        this.setState({ teams: cached });
+        return;
+      }
       const searchToken = axios.CancelToken.source();
       this.setState({searchToken});
-      vex.callApi(`/api/teams?search=${search}&sort=id,-season&limit=10`, {cancelToken: searchToken.token})
-        .then((teams: VexTeam[]) => this.setState({teams}))
-        .catch(console.error);
+      vex.callApi(`/api/teams?search=${search}&sort=id,-season&limit=10`, { cancelToken: searchToken.token })
+        .then((teams: VexTeam[]) => this.setState(state => {
+          state.searchCache[search] = teams;
+          return { teams, searchCache: state.searchCache };
+        })).catch(error => {
+          if (!axios.isCancel(error)) {
+            console.error(error);
+          }
+        });
     } else {
-      this.setState({teams: []});
+      this.setState({ teams: [] });
     }
   }
 
@@ -135,14 +148,20 @@ class App extends Component<RouteComponentProps, AppState> {
                 placeholder="Search"
                 onFocus={event => this.onSearchFocus(event)}
               />
-              <Search className="search-icon" />
+              <Search
+                className="search-icon"
+                onClick={() => this.setState({ searchOpen: true })}
+              />
+            </div>
+            <div className="search-button">
+              <Search onClick={() => this.setState({ searchOpen: true })} />
             </div>
           </Toolbar>
         </AppBar>
         {this.props.children}
         <Drawer
           open={this.state.navigationOpen}
-          onClose={() => this.setState({navigationOpen: false})}
+          onClose={() => this.setState({ navigationOpen: false })}
         >
           <AppBar position="static">
             <Toolbar disableGutters variant="dense">
@@ -154,7 +173,7 @@ class App extends Component<RouteComponentProps, AppState> {
               button
               component="a"
               href="/teams"
-              onClick={event => this.onNavigationItemClick(event, '/teams')}
+              onClick={(event: MouseEvent) => this.onNavigationItemClick(event, '/teams')}
               selected={this.isSelected('/teams')}
             >
               <ListItemIcon>
@@ -166,7 +185,7 @@ class App extends Component<RouteComponentProps, AppState> {
               button
               component="a"
               href="/events"
-              onClick={event => this.onNavigationItemClick(event, '/events')}
+              onClick={(event: MouseEvent) => this.onNavigationItemClick(event, '/events')}
               selected={this.isSelected('/events')}
             >
               <ListItemIcon>
@@ -178,7 +197,7 @@ class App extends Component<RouteComponentProps, AppState> {
               button
               component="a"
               href="/skills"
-              onClick={event => this.onNavigationItemClick(event, '/skills')}
+              onClick={(event: MouseEvent) => this.onNavigationItemClick(event, '/skills')}
               selected={this.isSelected('/skills')}
             >
               <ListItemIcon>
@@ -191,7 +210,7 @@ class App extends Component<RouteComponentProps, AppState> {
         <Drawer
           anchor="right"
           open={this.state.searchOpen}
-          onClose={() => this.setState({searchOpen: false})}
+          onClose={() => this.setState({ searchOpen: false })}
         >
           <div className="search-container">
             <TextField
@@ -207,11 +226,11 @@ class App extends Component<RouteComponentProps, AppState> {
               <ListItem
                 button
                 component="a"
-                href={`/teams/${vex.decodeProgram(team.program)}/${team._id.id}`}
-                key={`${team.program}.${team._id.id}`}
+                href={`/teams/${vex.decodeProgram(team._id.program)}/${team._id.id}`}
+                key={`${team._id.program}.${team._id.id}`}
               >
                 <ListItemIcon>
-                  <ProgramIcon program={team.program} />
+                  <ProgramIcon program={team._id.program} />
                 </ListItemIcon>
                 <ListItemText primary={team._id.id} secondary={team.name} />
               </ListItem>

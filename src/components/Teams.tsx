@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from 'react';
 import { RouteComponentProps } from 'react-router';
-import { Headline4, Headline1 } from '@material/react-typography';
+import { Headline4 } from '@material/react-typography';
 
 import vex from '../vex'
 import './Teams.scss'
@@ -11,7 +11,7 @@ type TeamsState = {
 
 type TeamInfo = {
   _id: {
-    prog: number,
+    program: number,
     id: string,
     season: number
   },
@@ -31,7 +31,7 @@ class Teams extends Component<RouteComponentProps, TeamsState> {
 
   componentDidMount() {
     vex.callApi(`/api/teams?sort=id`).then((teams: TeamInfo[]) => {
-      this.setState({teams});
+      this.setState({ teams });
     }).catch(console.error);
 
     document.title = `Teams - VEX Data`;

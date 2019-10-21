@@ -10,7 +10,8 @@ const dbUri = process.env.WEBSITE_DB || '';
 const mongoOptions = {
   retryWrites: true,
   reconnectTries: Number.MAX_VALUE,
-  useNewUrlParser: true
+  useNewUrlParser: true,
+  useUnifiedTopology: true
 };
 
 let db, teams, events, skills, matches, rankings, awards, maxSkills;
@@ -79,7 +80,7 @@ router.get('/teams', (req, res) => {
     if (program === undefined) {
       return badProgram(res);
     }
-    match.program = program;
+    match['_id.program'] = program;
   }
   if (req.query.id !== undefined) {
     const id = validateId(req.query.id);
@@ -104,18 +105,18 @@ router.get('/teams', (req, res) => {
         field = field.slice(1);
         order = -1;
       }
-      if (!['id', 'season'].includes(field)) {
+      if (!['program', 'id', 'season'].includes(field)) {
         return badQuery(res, `invalid sort field "${field}"`);
       }
-      if (['id', 'season'].includes(field)) {
+      if (['program', 'id', 'season'].includes(field)) {
         field = `_id.${field}`;
       }
       sort[field] = order;
     }
   }
   if (req.query.search !== undefined) {
-    match['_id.id'] = new RegExp(`^${req.query.search}`, 'i');
-    group._id = {id: '$_id.id', program: '$program'};
+    match['_id.id'] = new RegExp(`^${req.query.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i');
+    group._id = {program: '$_id.program', id: '$_id.id'};
     group.data = {$first: '$$ROOT'};
     if (req.query.sort !== undefined) {
       aggregate.push({$sort: sort});
@@ -165,7 +166,7 @@ router.get('/teams/:program/:id/:season', (req, res) => {
   if (season === undefined) {
     return badSeason(res);
   }
-  teams.find({_id: {id, season}}).project(teamHideSensitive).limit(1).toArray()
+  teams.find({_id: {program, id, season}}).project(teamHideSensitive).limit(1).toArray()
     .then(teams => {
       if (teams.length === 0) {
         return notFound(res);
@@ -358,7 +359,7 @@ router.get('/rankings/:event/:team', (req, res) => {
   if (id === undefined) {
     return badId(res);
   }
-  rankings.find({'_id.event': event, '_id.team': id}).limit(1).toArray()
+  rankings.find({'_id.event': event, '_id.team.id': id}).limit(1).toArray()
     .then(rankings => {
       if (rankings.length === 0) {
         return notFound(res, 'Ranking not found');
@@ -390,7 +391,7 @@ router.get('/awards', (req, res) => {
       }
       teams.push(id);
     }
-    query.team = {$in: teams};
+    query['team.id'] = {$in: teams};
   }
   awards.find(query).project(projection).sort(sort).skip(skip).limit(limit).toArray()
     .then(teams => res.json(teams))

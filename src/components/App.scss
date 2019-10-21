@@ -1,4 +1,4 @@
-//$mdc-theme-primary: #2196f3;
+$mdc-theme-primary: #3f51b5;
 
 .menu-icon {
   margin: 11px 16px;
@@ -6,12 +6,29 @@
 }
 
 .search-bar {
-  width: 240px;
+  display: none;
+  width: 230px;
   height: 32px;
   margin-left: auto;
-  margin-right: 16px;
+  margin-right: 10px;
   border-radius: 4px;
   background-color: rgba(255, 255, 255, 0.15);
+}
+
+.search-button {
+  display: block;
+  margin-top: 8px;
+  margin-left: auto;
+  margin-right: 18px;
+}
+
+@media screen and (min-width: 600px) {
+  .search-bar {
+    display: block;
+  }
+  .search-button {
+    display: none;
+  }
 }
 
 .search-input {
@@ -33,13 +50,13 @@
 }
 
 .search-container {
-  margin: 11px 16px;
+  margin: 8px 10px;
 }
 
 .search-field {
-  width: 350px;
+  width: 194px;
 }
 
 .search-list {
-  width: 400px;
+  width: 240px;
 }
