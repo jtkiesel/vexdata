@@ -476,7 +476,8 @@ const seasons = {
   'nothing but net': 110,
   'starstruck': 115,
   'in the zone': 119,
-  'turning point': 125
+  'turning point': 125,
+  'tower takeover': 130
 };
 
 const grades = [
