@@ -1,7 +1,7 @@
-const compression = require('compression');
-const express = require('express');
-const { MongoClient } = require('mongodb');
-const path = require('path');
+import compression from 'compression';
+import express from 'express';
+import { MongoClient } from 'mongodb';
+import path from 'path';
 
 const app = express();
 const router = express.Router();
@@ -9,7 +9,6 @@ const port = process.env.PORT || 5000;
 const dbUri = process.env.WEBSITE_DB || '';
 const mongoOptions = {
   retryWrites: true,
-  reconnectTries: Number.MAX_VALUE,
   useNewUrlParser: true,
   useUnifiedTopology: true
 };
@@ -250,7 +249,7 @@ router.get('/events', (req, res) => {
     }
   }
   events.find(query).project(projection).sort(sort).skip(skip).limit(limit).toArray()
-    .then(teams => res.json(teams))
+    .then(events => res.json(events))
     .catch(err => serverError(res, err));
 });
 
@@ -350,6 +349,66 @@ router.get('/matches', (req, res) => {
     .catch(err => serverError(res, err));
 });
 
+router.get('/rankings', (req, res) => {
+  const query = {};
+  const projection = {};
+  const sort = {};
+  let skip = 0;
+  let limit = 1000;
+
+  if (req.query.event !== undefined) {
+    const event = validateSku(req.query.event);
+    if (event === undefined) {
+      return badSku(res);
+    }
+    query['_id.event'] = event;
+  }
+  if (req.query.program !== undefined) {
+    const program = validateProgram(req.query.program);
+    if (program === undefined) {
+      return badProgram(res);
+    }
+    query['team.program'] = program;
+  }
+  if (req.query.season !== undefined) {
+    const season = validateSeason(req.query.season);
+    if (season === undefined) {
+      return badSeason(res);
+    }
+    query['team.season'] = season;
+  }
+  if (req.query.sort !== undefined) {
+    const fields = req.query.sort.split(',');
+    for (let field of fields) {
+      const sign = field.charAt(0);
+      let order = 1;
+      if (sign === '-') {
+        field = field.slice(1);
+        order = -1;
+      }
+      if (!['opr', 'dpr', 'ccwm'].includes(field)) {
+        return badQuery(res, `invalid sort field "${field}"`);
+      }
+      sort[field] = order;
+    }
+  }
+  if (req.query.skip !== undefined) {
+    skip = validateSkip(req.query.skip);
+    if (skip === undefined) {
+      return badSkip(res);
+    }
+  }
+  if (req.query.limit !== undefined) {
+    limit = validateLimit(req.query.limit);
+    if (limit === undefined) {
+      return badLimit(res);
+    }
+  }
+  rankings.find(query).project(projection).sort(sort).skip(skip).limit(limit).toArray()
+    .then(teams => res.json(teams))
+    .catch(err => serverError(res, err));
+});
+
 router.get('/rankings/:event/:team', (req, res) => {
   const event = validateSku(req.params.event);
   if (event === undefined) {
@@ -359,7 +418,7 @@ router.get('/rankings/:event/:team', (req, res) => {
   if (id === undefined) {
     return badId(res);
   }
-  rankings.find({'_id.event': event, '_id.team.id': id}).limit(1).toArray()
+  rankings.find({'_id.event': event, 'team.id': id}).limit(1).toArray()
     .then(rankings => {
       if (rankings.length === 0) {
         return notFound(res, 'Ranking not found');
