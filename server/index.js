@@ -60,8 +60,8 @@ app.use(compression());
 app.use('/api', router);
 
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../build')));
-  app.get('*', (_, res) => res.sendFile(path.join(__dirname, '../build/index.html')));
+  app.use(express.static(path.join(__dirname, '..')));
+  app.get('*', (_, res) => res.sendFile(path.join(__dirname, '../index.html')));
 }
 
 router.get('/teams', (req, res) => {

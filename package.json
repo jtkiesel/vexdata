@@ -21,7 +21,7 @@
   },
   "scripts": {
     "dev": "concurrently --kill-others-on-fail \"nodemon -L\" \"nodemon -L --inspect --exec babel-node server\"",
-    "prod": "npm run build && NODE_ENV=production node build/server",
+    "prod": "npm run build && concurrently \"npm run start\" \"NODE_ENV=production node build/server\"",
     "heroku-postbuild": "npm run build",
     "start": "react-scripts start",
     "build": "react-scripts build && babel server -d build/server",
