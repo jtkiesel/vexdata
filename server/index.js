@@ -368,14 +368,14 @@ router.get('/rankings', (req, res) => {
     if (program === undefined) {
       return badProgram(res);
     }
-    query['team.program'] = program;
+    query['_id.team.program'] = program;
   }
   if (req.query.season !== undefined) {
     const season = validateSeason(req.query.season);
     if (season === undefined) {
       return badSeason(res);
     }
-    query['team.season'] = season;
+    query['_id.team.season'] = season;
   }
   if (req.query.sort !== undefined) {
     const fields = req.query.sort.split(',');
