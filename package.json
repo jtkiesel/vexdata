@@ -72,8 +72,8 @@
     "nodemon": "^2.0.2"
   },
   "engines": {
-    "node": "^12.16.1",
-    "npm": "^6.13.4"
+    "node": "^13.11.0",
+    "npm": "^6.13.7"
   },
   "private": true,
   "browserslist": [
