@@ -418,7 +418,7 @@ router.get('/rankings/:event/:team', (req, res) => {
   if (id === undefined) {
     return badId(res);
   }
-  rankings.find({'_id.event': event, 'team.id': id}).limit(1).toArray()
+  rankings.find({'_id.event': event, '_id.team.id': id}).limit(1).toArray()
     .then(rankings => {
       if (rankings.length === 0) {
         return notFound(res, 'Ranking not found');

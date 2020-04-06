@@ -32,7 +32,11 @@ type VexRanking = {
   _id: {
     event: string,
     division: number,
-    team: string
+    team: {
+      id: string,
+      program: number,
+      season: number
+    }
   },
   rank: number,
   wins: number | undefined,

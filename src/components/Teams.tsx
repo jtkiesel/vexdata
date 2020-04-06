@@ -8,8 +8,8 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
-import vex from '../vex'
-import './Teams.scss'
+import vex from '../vex';
+import './Teams.scss';
 
 type TeamsState = {
   rankings: VexRanking[]
@@ -19,13 +19,13 @@ type VexRanking = {
   _id: {
     event: string,
     division: number,
-    rank: number
+    team: {
+      id: string,
+      program: number,
+      season: number
+    }
   },
-  team: {
-    id: string,
-    program: number,
-    season: number
-  },
+  rank: number,
   played: number,
   wins: number | undefined,
   losses: number | undefined,
@@ -76,7 +76,7 @@ class Teams extends Component<RouteComponentProps, TeamsState> {
               {this.state.rankings.map((ranking: VexRanking, index: number) => {
                 return (
                   <TableRow key={index}>
-                    <TableCell>{ranking.team.id}</TableCell>
+                    <TableCell>{ranking._id.team.id}</TableCell>
                     <TableCell>{(ranking.opr || 0).toFixed(2)}</TableCell>
                     <TableCell>{(ranking.dpr || 0).toFixed(2)}</TableCell>
                     <TableCell>{(ranking.ccwm || 0).toFixed(2)}</TableCell>
